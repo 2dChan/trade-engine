@@ -1,0 +1,50 @@
+name: Go Quality Checks
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          check-latest: true
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Verify dependencies
+        run: |
+          go mod verify
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Fmt
+        run: |
+          if [[ $(gofmt -l . | tee /dev/stderr) ]]; then
+            echo "Code is not gofmt-ed, run gofmt!"
+            exit 1
+          fi
+
+      - name: Security scan
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9.2.0
+        with:
+          version: v2.7.2
+          args: "--enable=gosec --timeout=5m"
+
