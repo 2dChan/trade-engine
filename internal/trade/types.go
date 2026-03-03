@@ -43,7 +43,7 @@ type InstrumentType int
 const (
 	Unspecified InstrumentType = iota
 	Bond
-	Stock
+	Share
 	Currency
 	Etf
 	Futures
@@ -58,8 +58,8 @@ func (i InstrumentType) String() string {
 	switch i {
 	case Bond:
 		return "bond"
-	case Stock:
-		return "stock"
+	case Share:
+		return "share"
 	case Currency:
 		return "currency"
 	case Etf:
