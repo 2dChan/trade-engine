@@ -43,7 +43,7 @@ type InstrumentType int
 const (
 	Unspecified InstrumentType = iota
 	Bond
-	Share
+	Stock
 	Currency
 	Etf
 	Futures
@@ -53,3 +53,30 @@ const (
 	Index
 	Commodity
 )
+
+func (i InstrumentType) String() string {
+	switch i {
+	case Bond:
+		return "bond"
+	case Stock:
+		return "stock"
+	case Currency:
+		return "currency"
+	case Etf:
+		return "etf"
+	case Futures:
+		return "futures"
+	case Sp:
+		return "sp"
+	case Option:
+		return "option"
+	case ClearingCertificate:
+		return "clearing_certificate"
+	case Index:
+		return "index"
+	case Commodity:
+		return "commodity"
+	default:
+		return "unspecified"
+	}
+}
