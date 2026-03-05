@@ -42,25 +42,22 @@ type order struct {
 func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
-		return order{}, fmt.Errorf("bcs: place order generate id: %w", err)
+		return order{}, fmt.Errorf("generate id: %w", err)
 	}
 
 	dir, err := convertOrderDirection(tradeOrd.Direction)
 	if err != nil {
-		return order{}, fmt.Errorf("bcs: failed to convert direction: %w", err)
+		return order{}, err
 	}
 
 	ordType, err := convertOrderType(tradeOrd.Type)
 	if err != nil {
-		return order{}, fmt.Errorf("bcs: failed to convert order type: %w", err)
+		return order{}, err
 	}
 
 	quantity, frac, ok := tradeOrd.Quantity.Int64(0)
-	if !ok {
-		return order{}, fmt.Errorf("bcs: failed to convert order quantity to int")
-	}
-	if frac != 0 {
-		return order{}, fmt.Errorf("bcs: order quantity not int = %q", tradeOrd.Quantity)
+	if !ok && frac != 0 {
+		return order{}, fmt.Errorf("quantity %q is not an integer", tradeOrd.Quantity)
 	}
 
 	ord := order{
@@ -74,7 +71,7 @@ func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
 
 	if ord.Type == limit {
 		if tradeOrd.Price == decimal.Zero {
-			return order{}, fmt.Errorf("bcs: limit order price must be > 0, got %q", tradeOrd.Price)
+			return order{}, fmt.Errorf("limit order price must be > 0")
 		}
 		ord.Price = json.Number(tradeOrd.Price.String())
 	}

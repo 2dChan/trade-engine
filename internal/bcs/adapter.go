@@ -63,7 +63,7 @@ func (a *Adapter) Name() string {
 func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 	rawPos, err := a.portfolio(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: can't get portfolio: %w", err)
+		return nil, err
 	}
 
 	accounts := make([]trade.Account, 1)
@@ -79,7 +79,7 @@ func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error) {
 	rawPos, err := a.portfolio(ctx)
 	if err != nil {
-		return trade.Portfolio{}, fmt.Errorf("bcs: can't get portfolio: %w", err)
+		return trade.Portfolio{}, err
 	}
 
 	// Most of the positions in the portfolio are repeated 4 times, with terms(T0, T1, T2, T365).
@@ -117,38 +117,38 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, ordersURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: create orders request: %w", err)
+		return nil, fmt.Errorf("bcs: orders: %w", err)
 	}
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: orders request failed: %w", err)
+		return nil, fmt.Errorf("bcs: orders: %w", err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bcs: orders request returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("bcs: orders: unexpected status %d", resp.StatusCode)
 	}
 
 	var ordResp ordersSearchResponse
 	if err = json.NewDecoder(resp.Body).Decode(&ordResp); err != nil {
-		return nil, fmt.Errorf("bcs: failed to decode orders response: %w", err)
+		return nil, fmt.Errorf("bcs: orders: decode response: %w", err)
 	}
 
 	res := make([]trade.OrderState, len(ordResp.Records))
 	for i, r := range ordResp.Records {
 		status, err := convertRecordStatusToOrderStatus(r.Status)
 		if err != nil {
-			return nil, fmt.Errorf("bcs: failed to convert record status: %w", err)
+			return nil, fmt.Errorf("bcs: orders: %w", err)
 		}
 		t, err := convertRecordTypeToOrderType(r.Type)
 		if err != nil {
-			return nil, fmt.Errorf("bcs: failed to convert record type: %w", err)
+			return nil, fmt.Errorf("bcs: orders: %w", err)
 		}
 		dir, err := convertRecordDirectionToOrderDirection(r.Direction)
 		if err != nil {
-			return nil, fmt.Errorf("bcs: failed to convert record direction: %w", err)
+			return nil, fmt.Errorf("bcs: orders: %w", err)
 		}
 
 		res[i] = trade.OrderState{
@@ -168,37 +168,37 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 	url := strings.Replace(orderStateURL, ":originalClientOrderId", orderID, 1)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state create request: %w", err)
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
 	}
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state request failed: %w", err)
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state request returned status %d", resp.StatusCode)
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: unexpected status %d", resp.StatusCode)
 	}
 
 	var rawState orderState
 	if err = json.NewDecoder(resp.Body).Decode(&rawState); err != nil {
-		return trade.OrderState{}, err
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: decode response: %w", err)
 	}
 
 	status, err := convertOrderStatusToTrade(rawState.Data.Status)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: failed to convert order status: %w", err)
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
 	}
 	t, err := convertOrderTypeToTrade(rawState.Data.Type)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: failed to convert order type: %w", err)
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
 	}
 	dir, err := convertOrderDirectionToTrade(rawState.Data.Direction)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: failed to convert order direction: %w", err)
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
 	}
 
 	state := trade.OrderState{
@@ -222,38 +222,38 @@ func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.
 
 	ord, err := newOrder(order, instr.ClassCode)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("bcs: place order: %w", err)
 	}
 
 	body, err := json.Marshal(ord)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("bcs: place order: marshal: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, placeOrderURL, bytes.NewReader(body))
 	if err != nil {
-		return "", fmt.Errorf("bcs: place order create request: %w", err)
+		return "", fmt.Errorf("bcs: place order: %w", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("bcs: place order request failed: %w", err)
+		return "", fmt.Errorf("bcs: place order: %w", err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bcs: place order request returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("bcs: place order: unexpected status %d", resp.StatusCode)
 	}
 
 	var res orderOperationResponse
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return "", err
+		return "", fmt.Errorf("bcs: place order: decode response: %w", err)
 	}
 	if res.Status != "OK" {
-		return "", fmt.Errorf("bcs: place order failed status = %q", res.Status)
+		return "", fmt.Errorf("bcs: place order: status %q", res.Status)
 	}
 
 	return res.OrderID, nil
@@ -264,7 +264,7 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 
 	clientOrderId, err := uuid.NewRandom()
 	if err != nil {
-		return fmt.Errorf("bcs: cancel order generate clientOrderId: %w", err)
+		return fmt.Errorf("bcs: cancel order: generate id: %w", err)
 	}
 
 	ordID := cancelOrderRequest{
@@ -272,32 +272,32 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 	}
 	body, err := json.Marshal(ordID)
 	if err != nil {
-		return fmt.Errorf("bcs: cancel order marshal body: %w", err)
+		return fmt.Errorf("bcs: cancel order: marshal: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		return fmt.Errorf("bcs: cancel order create request: %w", err)
+		return fmt.Errorf("bcs: cancel order: %w", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("bcs: cancel order request failed: %w", err)
+		return fmt.Errorf("bcs: cancel order: %w", err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bcs: cancel order request returned status %d", resp.StatusCode)
+		return fmt.Errorf("bcs: cancel order: unexpected status %d", resp.StatusCode)
 	}
 
 	var res orderOperationResponse
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return fmt.Errorf("bcs: cancel order decode response: %w", err)
+		return fmt.Errorf("bcs: cancel order: decode response: %w", err)
 	}
 	if res.Status != "OK" {
-		return fmt.Errorf("bcs: cancel order failed status = %q", res.Status)
+		return fmt.Errorf("bcs: cancel order: status %q", res.Status)
 	}
 
 	return nil
@@ -306,10 +306,10 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 func (a *Adapter) InstrumentByTicker(ctx context.Context, ticker string) (trade.Instrument, error) {
 	instrs, err := a.InstrumentsByTickers(ctx, []string{ticker})
 	if err != nil {
-		return trade.Instrument{}, fmt.Errorf("bcs: place order ticker: %q: %w", ticker, err)
+		return trade.Instrument{}, err
 	}
 	if len(instrs) != 1 {
-		return trade.Instrument{}, fmt.Errorf("bcs: failed to get info about: %q", ticker)
+		return trade.Instrument{}, fmt.Errorf("bcs: instrument %q not found", ticker)
 	}
 
 	return instrs[0], nil
@@ -319,7 +319,7 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	instReq := instrumentsByTickersRequest{Tickers: tickers}
 	body, err := json.Marshal(instReq)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("bcs: instruments: marshal: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, instrumentsByTickersURL, bytes.NewReader(body))
@@ -330,19 +330,19 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: instruments request failed: %w", err)
+		return nil, fmt.Errorf("bcs: instruments: %w", err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bcs: instruments request returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("bcs: instruments: unexpected status %d", resp.StatusCode)
 	}
 
 	var rawInstrs []instrument
 	if err = json.NewDecoder(resp.Body).Decode(&rawInstrs); err != nil {
-		return nil, fmt.Errorf("bcs: failed to decode instruments response: %w", err)
+		return nil, fmt.Errorf("bcs: instruments: decode response: %w", err)
 	}
 
 	// Most of the positions in the portfolio are repeated with other boards.
@@ -374,27 +374,27 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 func (a *Adapter) portfolio(ctx context.Context) ([]position, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, portfolioURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: create portfolio request: %w", err)
+		return nil, fmt.Errorf("bcs: portfolio: %w", err)
 	}
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: portfolio request failed: %w", err)
+		return nil, fmt.Errorf("bcs: portfolio: %w", err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bcs: portfolio request returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("bcs: portfolio: unexpected status %d", resp.StatusCode)
 	}
 
 	var pos []position
 	if err = json.NewDecoder(resp.Body).Decode(&pos); err != nil {
-		return nil, fmt.Errorf("bcs: failed to decode portfolio response: %w", err)
+		return nil, fmt.Errorf("bcs: portfolio: decode response: %w", err)
 	}
 	if len(pos) == 0 {
-		return nil, fmt.Errorf("bcs: portfolio has zero positions, requires at least 1")
+		return nil, fmt.Errorf("bcs: portfolio: no positions")
 	}
 
 	return pos, nil
