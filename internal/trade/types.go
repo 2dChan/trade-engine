@@ -17,8 +17,7 @@ type Instrument struct {
 	ClassCode string
 	Type      InstrumentType
 	Currency  CurrencyCode
-	Price     decimal.Decimal
-	Lot       int
+	Lot       decimal.Decimal
 }
 
 type Position struct {
