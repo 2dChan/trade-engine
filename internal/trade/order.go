@@ -6,19 +6,6 @@ package trade
 
 import "github.com/govalues/decimal"
 
-type Order struct {
-	Ticker    string
-	Type      OrderType
-	Direction OrderDirection
-	Quantity  decimal.Decimal
-	Price     decimal.Decimal
-}
-
-type OrderResult struct {
-	ID     string
-	Status OrderStatus
-}
-
 type OrderDirection int
 
 const (
@@ -26,12 +13,34 @@ const (
 	Buy
 )
 
+func (o OrderDirection) String() string {
+	switch o {
+	case Sell:
+		return "sell"
+	case Buy:
+		return "buy"
+	default:
+		return "undefined"
+	}
+}
+
 type OrderType int
 
 const (
 	Limit OrderType = iota
 	Market
 )
+
+func (o OrderType) String() string {
+	switch o {
+	case Limit:
+		return "limit"
+	case Market:
+		return "market"
+	default:
+		return "undefined"
+	}
+}
 
 type OrderStatus int
 
@@ -42,3 +51,38 @@ const (
 	Cancelled
 	Rejected
 )
+
+func (o OrderStatus) String() string {
+	switch o {
+	case New:
+		return "new"
+	case Fill:
+		return "fill"
+	case PartiallyFill:
+		return "partiallyfill"
+	case Cancelled:
+		return "cancelled"
+	case Rejected:
+		return "rejected"
+	default:
+		return "undefined"
+	}
+}
+
+type Order struct {
+	Ticker    string
+	Type      OrderType
+	Direction OrderDirection
+	Quantity  decimal.Decimal
+	Price     decimal.Decimal
+}
+
+type OrderState struct {
+	ID        string
+	Ticker    string
+	Status    OrderStatus
+	Type      OrderType
+	Direction OrderDirection
+	Price     decimal.Decimal
+	Quantity  decimal.Decimal
+}
