@@ -1,0 +1,401 @@
+// Copyright (C) 2026 Andrey Kriulin
+// Licensed under the GNU Affero General Public License v3.0 or later.
+// See the LICENSE file in the project root for the full license text.
+
+package bcs
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/2dChan/trade-engine/internal/trade"
+	"github.com/google/uuid"
+	"golang.org/x/oauth2"
+)
+
+const (
+	name = "BCS"
+
+	baseURL                 = "https://be.broker.ru/"
+	tokenURL                = baseURL + "trade-api-keycloak/realms/tradeapi/protocol/openid-connect/token"
+	portfolioURL            = baseURL + "trade-api-bff-portfolio/api/v1/portfolio"
+	ordersURL               = baseURL + "trade-api-bff-order-details/api/v1/orders/search"
+	placeOrderURL           = baseURL + "trade-api-bff-operations/api/v1/orders"
+	cancelOrderURL          = baseURL + "trade-api-bff-operations/api/v1/orders/:originalClientOrderId/cancel"
+	orderStateURL           = baseURL + "trade-api-bff-operations/api/v1/orders/:originalClientOrderId"
+	instrumentsByTickersURL = baseURL + "trade-api-information-service/api/v1/instruments/by-tickers"
+
+	MOEX = "MOEX"
+)
+
+type Adapter struct {
+	client *http.Client
+}
+
+func NewAdapter(ctx context.Context, token string) (*Adapter, error) {
+	tok := &oauth2.Token{
+		RefreshToken: token,
+	}
+	cfg := &oauth2.Config{
+		ClientID: "trade-api-write",
+		Endpoint: oauth2.Endpoint{
+			TokenURL: tokenURL,
+		},
+	}
+
+	a := &Adapter{
+		client: cfg.Client(ctx, tok),
+	}
+
+	// TODO: Error handle
+
+	return a, nil
+}
+
+func (a *Adapter) Name() string {
+	return name
+}
+
+func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
+	rawPos, err := a.portfolio(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("bcs: can't get portfolio: %w", err)
+	}
+
+	accounts := make([]trade.Account, 1)
+
+	// Bcs provide token per portfolio and haven't portfolio info API.
+	// Assign account from first position in portfolio.
+	accounts[0].ID = rawPos[0].AccountID
+	accounts[0].Name = rawPos[0].AccountID
+
+	return accounts, nil
+}
+
+func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error) {
+	rawPos, err := a.portfolio(ctx)
+	if err != nil {
+		return trade.Portfolio{}, fmt.Errorf("bcs: can't get portfolio: %w", err)
+	}
+
+	// Most of the positions in the portfolio are repeated 4 times, with terms(T0, T1, T2, T365).
+	minLen := len(rawPos) / 4
+	pos := make([]trade.Position, 0, minLen)
+	index := make(map[string]struct{}, minLen)
+	for _, r := range rawPos {
+		if _, exists := index[r.Ticker]; exists {
+			continue
+		}
+		index[r.Ticker] = struct{}{}
+
+		p := trade.Position{
+			Name:         r.DisplayName,
+			Ticker:       r.Ticker,
+			Type:         parseInstrumentTypeToTrade(r.InstrumentType),
+			Currency:     trade.CurrencyCode(r.Currency),
+			AveragePrice: r.BalancePrice,
+			CurrentPrice: r.CurrentPrice,
+			Quantity:     r.Quantity,
+		}
+		pos = append(pos, p)
+	}
+
+	portfolio := trade.Portfolio{
+		AccountID: accountID,
+		Name:      accountID,
+		Currency:  trade.RUB, // BCS haven't portfolio info API.
+		Positions: pos,
+	}
+
+	return portfolio, nil
+}
+
+func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, ordersURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("bcs: create orders request: %w", err)
+	}
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("bcs: orders request failed: %w", err)
+	}
+	//nolint:errcheck
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bcs: orders request returned status %d", resp.StatusCode)
+	}
+
+	var ordResp ordersSearchResponse
+	if err = json.NewDecoder(resp.Body).Decode(&ordResp); err != nil {
+		return nil, fmt.Errorf("bcs: failed to decode orders response: %w", err)
+	}
+
+	res := make([]trade.OrderState, len(ordResp.Records))
+	for i, r := range ordResp.Records {
+		status, err := convertRecordStatusToOrderStatus(r.Status)
+		if err != nil {
+			return nil, fmt.Errorf("bcs: failed to convert record status: %w", err)
+		}
+		t, err := convertRecordTypeToOrderType(r.Type)
+		if err != nil {
+			return nil, fmt.Errorf("bcs: failed to convert record type: %w", err)
+		}
+		dir, err := convertRecordDirectionToOrderDirection(r.Direction)
+		if err != nil {
+			return nil, fmt.Errorf("bcs: failed to convert record direction: %w", err)
+		}
+
+		res[i] = trade.OrderState{
+			ID:        r.ID,
+			Ticker:    r.Ticker,
+			Status:    status,
+			Type:      t,
+			Direction: dir,
+			Quantity:  r.Quantity,
+		}
+	}
+
+	return res, nil
+}
+
+func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error) {
+	url := strings.Replace(orderStateURL, ":originalClientOrderId", orderID, 1)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("bcs: order state create request: %w", err)
+	}
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("bcs: order state request failed: %w", err)
+	}
+	//nolint:errcheck
+	defer resp.Body.Close()
+
+	// TODO: Improve error handle(status codes)
+	if resp.StatusCode != http.StatusOK {
+		return trade.OrderState{}, fmt.Errorf("bcs: order state request returned status %d", resp.StatusCode)
+	}
+
+	var rawState orderState
+	if err = json.NewDecoder(resp.Body).Decode(&rawState); err != nil {
+		return trade.OrderState{}, err
+	}
+
+	status, err := convertOrderStatusToTrade(rawState.Data.Status)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("bcs: failed to convert order status: %w", err)
+	}
+	t, err := convertOrderTypeToTrade(rawState.Data.Type)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("bcs: failed to convert order type: %w", err)
+	}
+	dir, err := convertOrderDirectionToTrade(rawState.Data.Direction)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("bcs: failed to convert order direction: %w", err)
+	}
+
+	state := trade.OrderState{
+		ID:        rawState.ID,
+		Ticker:    rawState.Data.Ticker,
+		Status:    status,
+		Type:      t,
+		Direction: dir,
+		Price:     rawState.Data.Price,
+		Quantity:  rawState.Data.Quantity,
+	}
+
+	return state, nil
+}
+
+func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.Order) (string, error) {
+	instr, err := a.InstrumentByTicker(ctx, order.Ticker)
+	if err != nil {
+		return "", err
+	}
+
+	ord, err := newOrder(order, instr.ClassCode)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := json.Marshal(ord)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, placeOrderURL, bytes.NewReader(body))
+	if err != nil {
+		return "", fmt.Errorf("bcs: place order create request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("bcs: place order request failed: %w", err)
+	}
+	//nolint:errcheck
+	defer resp.Body.Close()
+
+	// TODO: Improve error handle(status codes)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bcs: place order request returned status %d", resp.StatusCode)
+	}
+
+	var res orderOperationResponse
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return "", err
+	}
+	if res.Status != "OK" {
+		return "", fmt.Errorf("bcs: place order failed status = %q", res.Status)
+	}
+
+	return res.OrderID, nil
+}
+
+func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
+	url := strings.Replace(cancelOrderURL, ":originalClientOrderId", orderID, 1)
+
+	clientOrderId, err := uuid.NewRandom()
+	if err != nil {
+		return fmt.Errorf("bcs: cancel order generate clientOrderId: %w", err)
+	}
+
+	ordID := cancelOrderRequest{
+		ClientOrderID: clientOrderId.String(),
+	}
+	body, err := json.Marshal(ordID)
+	if err != nil {
+		return fmt.Errorf("bcs: cancel order marshal body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("bcs: cancel order create request: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("bcs: cancel order request failed: %w", err)
+	}
+	//nolint:errcheck
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bcs: cancel order request returned status %d", resp.StatusCode)
+	}
+
+	var res orderOperationResponse
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return fmt.Errorf("bcs: cancel order decode response: %w", err)
+	}
+	if res.Status != "OK" {
+		return fmt.Errorf("bcs: cancel order failed status = %q", res.Status)
+	}
+
+	return nil
+}
+
+func (a *Adapter) InstrumentByTicker(ctx context.Context, ticker string) (trade.Instrument, error) {
+	instrs, err := a.InstrumentsByTickers(ctx, []string{ticker})
+	if err != nil {
+		return trade.Instrument{}, fmt.Errorf("bcs: place order ticker: %q: %w", ticker, err)
+	}
+	if len(instrs) != 1 {
+		return trade.Instrument{}, fmt.Errorf("bcs: failed to get info about: %q", ticker)
+	}
+
+	return instrs[0], nil
+}
+
+func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([]trade.Instrument, error) {
+	instReq := instrumentsByTickersRequest{Tickers: tickers}
+	body, err := json.Marshal(instReq)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, instrumentsByTickersURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("bcs: instruments: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("bcs: instruments request failed: %w", err)
+	}
+	//nolint:errcheck
+	defer resp.Body.Close()
+
+	// TODO: Improve error handle(status codes)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bcs: instruments request returned status %d", resp.StatusCode)
+	}
+
+	var rawInstrs []instrument
+	if err = json.NewDecoder(resp.Body).Decode(&rawInstrs); err != nil {
+		return nil, fmt.Errorf("bcs: failed to decode instruments response: %w", err)
+	}
+
+	// Most of the positions in the portfolio are repeated with other boards.
+	// NOTE: For MVP supports only MOEX.
+	maxLen := len(rawInstrs)
+	instrs := make([]trade.Instrument, 0, maxLen)
+	index := make(map[string]struct{}, maxLen)
+	for _, rawInstr := range rawInstrs {
+		_, exists := index[rawInstr.Ticker]
+		board := searchBoard(rawInstr.Boards, MOEX)
+		if !exists && board != nil && board.ClassCode == rawInstr.PrimaryBoard {
+			instr := trade.Instrument{
+				Name:      rawInstr.Name,
+				Ticker:    rawInstr.Ticker,
+				ClassCode: rawInstr.PrimaryBoard,
+				Type:      parseInstrumentTypeToTrade(rawInstr.Type),
+				Currency:  rawInstr.Currency,
+				Lot:       rawInstr.Lot,
+			}
+
+			instrs = append(instrs, instr)
+			index[rawInstr.Ticker] = struct{}{}
+		}
+	}
+
+	return instrs, nil
+}
+
+func (a *Adapter) portfolio(ctx context.Context) ([]position, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, portfolioURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("bcs: create portfolio request: %w", err)
+	}
+
+	resp, err := a.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("bcs: portfolio request failed: %w", err)
+	}
+	//nolint:errcheck
+	defer resp.Body.Close()
+
+	// TODO: Improve error handle(status codes)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("bcs: portfolio request returned status %d", resp.StatusCode)
+	}
+
+	var pos []position
+	if err = json.NewDecoder(resp.Body).Decode(&pos); err != nil {
+		return nil, fmt.Errorf("bcs: failed to decode portfolio response: %w", err)
+	}
+	if len(pos) == 0 {
+		return nil, fmt.Errorf("bcs: portfolio has zero positions, requires at least 1")
+	}
+
+	return pos, nil
+}
