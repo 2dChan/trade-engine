@@ -28,7 +28,7 @@ func convertOrderDirectionToTrade(d orderDirection) (trade.OrderDirection, error
 	case sell:
 		return trade.Sell, nil
 	}
-	return trade.Sell, fmt.Errorf("bcs: unsupported orderDirection  %v", d)
+	return trade.Sell, fmt.Errorf("unsupported order direction %v", d)
 }
 
 func convertOrderStatusToTrade(s orderStatus) (trade.OrderStatus, error) {
@@ -44,7 +44,7 @@ func convertOrderStatusToTrade(s orderStatus) (trade.OrderStatus, error) {
 	case Rejected:
 		return trade.Rejected, nil
 	}
-	return trade.Cancelled, fmt.Errorf("bcs: unsupported orderStatus %v", s)
+	return trade.Cancelled, fmt.Errorf("unsupported order status %v", s)
 }
 
 func convertOrderTypeToTrade(t orderType) (trade.OrderType, error) {
@@ -54,7 +54,7 @@ func convertOrderTypeToTrade(t orderType) (trade.OrderType, error) {
 	case limit:
 		return trade.Limit, nil
 	}
-	return trade.Limit, fmt.Errorf("bcs: unsupported orderType int %v", t)
+	return trade.Limit, fmt.Errorf("unsupported order type %v", t)
 }
 
 func parseInstrumentTypeToTrade(s string) trade.InstrumentType {
@@ -89,8 +89,7 @@ func convertRecordDirectionToOrderDirection(d recordDirection) (trade.OrderDirec
 	case recordSell:
 		return trade.Sell, nil
 	}
-
-	return trade.Sell, fmt.Errorf("bcs: unsupported recordDirection %v", d)
+	return trade.Sell, fmt.Errorf("unsupported record direction %v", d)
 }
 
 func convertRecordStatusToOrderStatus(s recordStatus) (trade.OrderStatus, error) {
@@ -102,7 +101,7 @@ func convertRecordStatusToOrderStatus(s recordStatus) (trade.OrderStatus, error)
 	case RecordCanceld:
 		return trade.Cancelled, nil
 	}
-	return trade.Cancelled, fmt.Errorf("bcs: unsupported recordStatus %v", s)
+	return trade.Cancelled, fmt.Errorf("unsupported record status %v", s)
 }
 
 func convertRecordTypeToOrderType(t recordType) (trade.OrderType, error) {
@@ -112,7 +111,7 @@ func convertRecordTypeToOrderType(t recordType) (trade.OrderType, error) {
 	case recordLimit, recordIceberg, recordStopLimit, recordTakeProfitLimit, recordStopLoss, recordTakeProfitStopLoss, recordLimit30Days, recordTakeProfit, recordTrailingStop:
 		return trade.Limit, nil
 	}
-	return trade.Limit, fmt.Errorf("bcs: unsupported recordType %v", t)
+	return trade.Limit, fmt.Errorf("unsupported record type %v", t)
 }
 
 // Trade to BCS
@@ -124,7 +123,7 @@ func convertOrderDirection(d trade.OrderDirection) (orderDirection, error) {
 	case trade.Sell:
 		return sell, nil
 	}
-	return sell, fmt.Errorf("bcs: unsupported OrderDirection %v", d)
+	return sell, fmt.Errorf("unsupported order direction %v", d)
 }
 
 func convertOrderType(t trade.OrderType) (orderType, error) {
@@ -134,6 +133,5 @@ func convertOrderType(t trade.OrderType) (orderType, error) {
 	case trade.Market:
 		return market, nil
 	}
-
-	return market, fmt.Errorf("bcs: unsupported OrderType %v", t)
+	return market, fmt.Errorf("unsupported order type %v", t)
 }
