@@ -128,7 +128,7 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bcs: orders: unexpected status %d", resp.StatusCode)
+		return nil, parseErrorResponse("orders", resp)
 	}
 
 	var ordResp ordersSearchResponse
@@ -178,9 +178,8 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 	//nolint:errcheck
 	defer resp.Body.Close()
 
-	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state: unexpected status %d", resp.StatusCode)
+		return trade.OrderState{}, parseErrorResponse("order state", resp)
 	}
 
 	var rawState orderState
@@ -243,9 +242,8 @@ func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.
 	//nolint:errcheck
 	defer resp.Body.Close()
 
-	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bcs: place order: unexpected status %d", resp.StatusCode)
+		return "", parseErrorResponse("place order", resp)
 	}
 
 	var res orderOperationResponse
@@ -289,7 +287,7 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bcs: cancel order: unexpected status %d", resp.StatusCode)
+		return parseErrorResponse("cancel order", resp)
 	}
 
 	var res orderOperationResponse
@@ -335,9 +333,8 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	//nolint:errcheck
 	defer resp.Body.Close()
 
-	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bcs: instruments: unexpected status %d", resp.StatusCode)
+		return nil, parseErrorResponse("instruments", resp)
 	}
 
 	var rawInstrs []instrument
@@ -384,9 +381,8 @@ func (a *Adapter) portfolio(ctx context.Context) ([]position, error) {
 	//nolint:errcheck
 	defer resp.Body.Close()
 
-	// TODO: Improve error handle(status codes)
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bcs: portfolio: unexpected status %d", resp.StatusCode)
+		return nil, parseErrorResponse("portfolio", resp)
 	}
 
 	var pos []position
