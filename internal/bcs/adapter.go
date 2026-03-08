@@ -349,8 +349,8 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	index := make(map[string]struct{}, maxLen)
 	for _, rawInstr := range rawInstrs {
 		_, exists := index[rawInstr.Ticker]
-		board := searchBoard(rawInstr.Boards, MOEX)
-		if !exists && board != nil && board.ClassCode == rawInstr.PrimaryBoard {
+		board, ok := searchBoard(rawInstr.Boards, MOEX)
+		if !exists && ok && board.ClassCode == rawInstr.PrimaryBoard {
 			instr := trade.Instrument{
 				Name:      rawInstr.Name,
 				Ticker:    rawInstr.Ticker,
