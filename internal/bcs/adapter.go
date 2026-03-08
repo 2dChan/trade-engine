@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/2dChan/trade-engine/internal/trade"
 	"github.com/google/uuid"
@@ -25,8 +24,8 @@ const (
 	portfolioURL            = baseURL + "trade-api-bff-portfolio/api/v1/portfolio"
 	ordersURL               = baseURL + "trade-api-bff-order-details/api/v1/orders/search"
 	placeOrderURL           = baseURL + "trade-api-bff-operations/api/v1/orders"
-	cancelOrderURL          = baseURL + "trade-api-bff-operations/api/v1/orders/:originalClientOrderId/cancel"
-	orderStateURL           = baseURL + "trade-api-bff-operations/api/v1/orders/:originalClientOrderId"
+	cancelOrderURL          = baseURL + "trade-api-bff-operations/api/v1/orders/%s/cancel"
+	orderStateURL           = baseURL + "trade-api-bff-operations/api/v1/orders/%s"
 	instrumentsByTickersURL = baseURL + "trade-api-information-service/api/v1/instruments/by-tickers"
 
 	MOEX = "MOEX"
@@ -165,7 +164,8 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 }
 
 func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error) {
-	url := strings.Replace(orderStateURL, ":originalClientOrderId", orderID, 1)
+	url := fmt.Sprintf(orderStateURL, orderID)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
@@ -258,7 +258,7 @@ func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.
 }
 
 func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
-	url := strings.Replace(cancelOrderURL, ":originalClientOrderId", orderID, 1)
+	url := fmt.Sprintf(cancelOrderURL, orderID)
 
 	clientOrderId, err := uuid.NewRandom()
 	if err != nil {
