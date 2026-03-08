@@ -20,7 +20,7 @@ type position struct {
 	DisplayName    string          `json:"displayName"`
 	Ticker         string          `json:"ticker"`
 	InstrumentType string          `json:"instrumentType"`
-	Term           string          `json:"term"`
+	Term           term            `json:"term"`
 	Currency       string          `json:"currency"`
 	BalancePrice   decimal.Decimal `json:"balancePrice"`
 	CurrentPrice   decimal.Decimal `json:"currentPrice"`
