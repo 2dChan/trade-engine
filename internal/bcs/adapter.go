@@ -346,11 +346,9 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	// NOTE: For MVP supports only MOEX.
 	maxLen := len(rawInstrs)
 	instrs := make([]trade.Instrument, 0, maxLen)
-	index := make(map[string]struct{}, maxLen)
 	for _, rawInstr := range rawInstrs {
-		_, exists := index[rawInstr.Ticker]
 		board, ok := searchBoard(rawInstr.Boards, MOEX)
-		if !exists && ok && board.ClassCode == rawInstr.PrimaryBoard {
+		if ok && board.ClassCode == rawInstr.PrimaryBoard {
 			instr := trade.Instrument{
 				Name:      rawInstr.Name,
 				Ticker:    rawInstr.Ticker,
@@ -361,7 +359,6 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 			}
 
 			instrs = append(instrs, instr)
-			index[rawInstr.Ticker] = struct{}{}
 		}
 	}
 
