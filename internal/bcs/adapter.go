@@ -82,25 +82,22 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	}
 
 	// Most of the positions in the portfolio are repeated 4 times, with terms(T0, T1, T2, T365).
+	// We supports only T0.
 	minLen := len(rawPos) / 4
 	pos := make([]trade.Position, 0, minLen)
-	index := make(map[string]struct{}, minLen)
 	for _, r := range rawPos {
-		if _, exists := index[r.Ticker]; exists {
-			continue
+		if r.Term == termT0 {
+			p := trade.Position{
+				Name:         r.DisplayName,
+				Ticker:       r.Ticker,
+				Type:         parseInstrumentTypeToTrade(r.InstrumentType),
+				Currency:     trade.CurrencyCode(r.Currency),
+				AveragePrice: r.BalancePrice,
+				CurrentPrice: r.CurrentPrice,
+				Quantity:     r.Quantity,
+			}
+			pos = append(pos, p)
 		}
-		index[r.Ticker] = struct{}{}
-
-		p := trade.Position{
-			Name:         r.DisplayName,
-			Ticker:       r.Ticker,
-			Type:         parseInstrumentTypeToTrade(r.InstrumentType),
-			Currency:     trade.CurrencyCode(r.Currency),
-			AveragePrice: r.BalancePrice,
-			CurrentPrice: r.CurrentPrice,
-			Quantity:     r.Quantity,
-		}
-		pos = append(pos, p)
 	}
 
 	portfolio := trade.Portfolio{

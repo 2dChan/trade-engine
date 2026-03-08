@@ -61,3 +61,12 @@ const (
 	recordBuy  recordDirection = 1
 	recordSell recordDirection = 2
 )
+
+type term string
+
+const (
+	termT0   term = "T0"
+	termT1   term = "T1"
+	termT2   term = "T2"
+	termT365 term = "T365"
+)
