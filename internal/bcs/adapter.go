@@ -28,7 +28,7 @@ const (
 	orderStateURL           = baseURL + "trade-api-bff-operations/api/v1/orders/%s"
 	instrumentsByTickersURL = baseURL + "trade-api-information-service/api/v1/instruments/by-tickers"
 
-	MOEX = "MOEX"
+	moex = "MOEX"
 )
 
 type Adapter struct {
@@ -347,7 +347,7 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	maxLen := len(rawInstrs)
 	instrs := make([]trade.Instrument, 0, maxLen)
 	for _, rawInstr := range rawInstrs {
-		board, ok := searchBoard(rawInstr.Boards, MOEX)
+		board, ok := searchBoard(rawInstr.Boards, moex)
 		if ok && board.ClassCode == rawInstr.PrimaryBoard {
 			instr := trade.Instrument{
 				Name:      rawInstr.Name,
