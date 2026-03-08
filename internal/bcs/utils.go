@@ -10,13 +10,13 @@ import (
 	"github.com/2dChan/trade-engine/internal/trade"
 )
 
-func searchBoard(boards []board, exchange string) *board {
+func searchBoard(boards []board, exchange string) (board, bool) {
 	for _, b := range boards {
 		if b.Exchange == exchange {
-			return &b
+			return b, true
 		}
 	}
-	return nil
+	return board{}, false
 }
 
 // BCS to Trade
