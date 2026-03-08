@@ -98,7 +98,7 @@ func convertRecordStatusToOrderStatus(s recordStatus) (trade.OrderStatus, error)
 		return trade.New, nil
 	case RecordDone:
 		return trade.Fill, nil
-	case RecordCanceld:
+	case RecordCancelled:
 		return trade.Cancelled, nil
 	}
 	return trade.Cancelled, fmt.Errorf("unsupported record status %v", s)
