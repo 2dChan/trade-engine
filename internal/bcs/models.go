@@ -56,7 +56,7 @@ func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
 	}
 
 	quantity, frac, ok := tradeOrd.Quantity.Int64(0)
-	if !ok && frac != 0 {
+	if !ok || frac != 0 {
 		return order{}, fmt.Errorf("quantity %q is not an integer", tradeOrd.Quantity)
 	}
 
