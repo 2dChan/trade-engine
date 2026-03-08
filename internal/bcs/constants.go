@@ -58,6 +58,6 @@ const (
 type recordDirection int32
 
 const (
-	recordBuy  = 1
-	recordSell = 2
+	recordBuy  recordDirection = 1
+	recordSell recordDirection = 2
 )
