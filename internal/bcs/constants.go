@@ -35,9 +35,9 @@ const (
 type recordStatus int32
 
 const (
-	RecordCanceld recordStatus = 1
-	RecordDone    recordStatus = 2
-	RecordActive  recordStatus = 3
+	RecordCancelled recordStatus = 1
+	RecordDone      recordStatus = 2
+	RecordActive    recordStatus = 3
 )
 
 type recordType int32
