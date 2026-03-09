@@ -124,8 +124,8 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 	}
 
 	var ordResp ordersSearchResponse
-	if err := a.doRequest(ctx, "orders", http.MethodPost, ordersURL, nil, &ordResp); err != nil {
-		return nil, err
+	if err := a.doRequest(ctx, http.MethodPost, ordersURL, nil, &ordResp); err != nil {
+		return nil, fmt.Errorf("bcs: orders:  %w", err)
 	}
 
 	res := make([]trade.OrderState, len(ordResp.Records))
@@ -164,8 +164,8 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 	url := fmt.Sprintf(orderStateURL, orderID)
 
 	var rawState orderState
-	if err := a.doRequest(ctx, "order state", http.MethodGet, url, nil, &rawState); err != nil {
-		return trade.OrderState{}, err
+	if err := a.doRequest(ctx, http.MethodGet, url, nil, &rawState); err != nil {
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
 	}
 
 	status, err := convertOrderStatusToTrade(rawState.Data.Status)
@@ -215,9 +215,9 @@ func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.
 	}
 
 	var res orderOperationResponse
-	err = a.doRequest(ctx, "place order", http.MethodPost, placeOrderURL, bytes.NewReader(body), &res)
+	err = a.doRequest(ctx, http.MethodPost, placeOrderURL, bytes.NewReader(body), &res)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("bcs: place order: %w", err)
 	}
 	if res.Status != "OK" {
 		return "", fmt.Errorf("bcs: place order: status %q", res.Status)
@@ -247,9 +247,8 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 	}
 
 	var res orderOperationResponse
-	err = a.doRequest(ctx, "cancel order", http.MethodPost, url, bytes.NewReader(body), &res)
-	if err != nil {
-		return err
+	if err = a.doRequest(ctx, http.MethodPost, url, bytes.NewReader(body), &res); err != nil {
+		return fmt.Errorf("bcs: cancel order: %w", err)
 	}
 	if res.Status != "OK" {
 		return fmt.Errorf("bcs: cancel order: status %q", res.Status)
@@ -282,9 +281,9 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	}
 
 	var rawInstrs []instrument
-	err = a.doRequest(ctx, "instruments", http.MethodPost, instrumentsByTickersURL, bytes.NewReader(body), &rawInstrs)
+	err = a.doRequest(ctx, http.MethodPost, instrumentsByTickersURL, bytes.NewReader(body), &rawInstrs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("bcs: instruments: %w", err)
 	}
 
 	// Most of the positions in the portfolio are repeated with other boards.
@@ -313,10 +312,10 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 // doRequest executes an HTTP request against the BCS API.
 // If body is non-nil, Content-Type is set to application/json automatically.
 // On success the response body is decoded into target (must be a non-nil pointer).
-func (a *Adapter) doRequest(ctx context.Context, op, method, url string, body io.Reader, target any) error {
+func (a *Adapter) doRequest(ctx context.Context, method, url string, body io.Reader, target any) error {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
-		return fmt.Errorf("bcs: %s: %w", op, err)
+		return err
 	}
 	if body != nil {
 		req.Header.Add("Content-Type", "application/json")
@@ -324,17 +323,17 @@ func (a *Adapter) doRequest(ctx context.Context, op, method, url string, body io
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("bcs: %s: %w", op, err)
+		return err
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return parseErrorResponse(op, resp)
+		return parseErrorResponse(resp)
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(target); err != nil {
-		return fmt.Errorf("bcs: %s: decode response: %w", op, err)
+		return fmt.Errorf("decode response: %w", err)
 	}
 
 	return nil
@@ -342,8 +341,8 @@ func (a *Adapter) doRequest(ctx context.Context, op, method, url string, body io
 
 func (a *Adapter) portfolio(ctx context.Context) ([]position, error) {
 	var pos []position
-	if err := a.doRequest(ctx, "portfolio", http.MethodGet, portfolioURL, nil, &pos); err != nil {
-		return nil, err
+	if err := a.doRequest(ctx, http.MethodGet, portfolioURL, nil, &pos); err != nil {
+		return nil, fmt.Errorf("bcs: portfolio: %w", err)
 	}
 	if len(pos) == 0 {
 		return nil, fmt.Errorf("bcs: portfolio: no positions")

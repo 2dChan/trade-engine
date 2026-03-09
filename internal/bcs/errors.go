@@ -43,21 +43,21 @@ type errorResponse struct {
 	Errors    []errorDetail `json:"errors"`
 }
 
-func parseErrorResponse(op string, resp *http.Response) error {
+func parseErrorResponse(resp *http.Response) error {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("bcs: %s: status %d (could not read body: %w)", op, resp.StatusCode, err)
+		return fmt.Errorf("status %d (could not read body: %w)", resp.StatusCode, err)
 	}
 
 	var errResp errorResponse
 	if jsonErr := json.Unmarshal(body, &errResp); jsonErr != nil || errResp.Type == "" {
-		return fmt.Errorf("bcs: %s: status %d: %w", op, resp.StatusCode, sentinelForStatus(resp.StatusCode))
+		return fmt.Errorf("status %d: %w", resp.StatusCode, sentinelForStatus(resp.StatusCode))
 	}
 
 	sentinel := sentinelForType(errResp.Type)
 
 	if len(errResp.Errors) == 0 {
-		return fmt.Errorf("bcs: %s: %s (traceId: %s): %w", op, errResp.Type, errResp.TraceID, sentinel)
+		return fmt.Errorf("%s (traceId: %s): %w", errResp.Type, errResp.TraceID, sentinel)
 	}
 
 	msgs := make([]string, len(errResp.Errors))
@@ -68,7 +68,7 @@ func parseErrorResponse(op string, resp *http.Response) error {
 			msgs[i] = e.Message
 		}
 	}
-	return fmt.Errorf("bcs: %s: %s: %s (traceId: %s): %w", op, errResp.Type, strings.Join(msgs, "; "), errResp.TraceID, sentinel)
+	return fmt.Errorf("%s: %s (traceId: %s): %w", errResp.Type, strings.Join(msgs, "; "), errResp.TraceID, sentinel)
 }
 
 func sentinelForType(t errorType) error {
