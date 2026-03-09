@@ -33,7 +33,8 @@ const (
 )
 
 type Adapter struct {
-	client *http.Client
+	client    *http.Client
+	accountID string
 }
 
 func NewAdapter(ctx context.Context, token string) (*Adapter, error) {
@@ -51,7 +52,16 @@ func NewAdapter(ctx context.Context, token string) (*Adapter, error) {
 		client: cfg.Client(ctx, tok),
 	}
 
-	// TODO: Error handle
+	// Bcs provide token per portfolio and haven't portfolio info API.
+	// Assign account from first position in portfolio.
+	rawPos, err := a.portfolio(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(rawPos) == 0 {
+		return nil, fmt.Errorf("bcs: portfolio empty: failed to get account id")
+	}
+	a.accountID = rawPos[0].AccountID
 
 	return a, nil
 }
@@ -61,22 +71,18 @@ func (a *Adapter) Name() string {
 }
 
 func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
-	rawPos, err := a.portfolio(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	accounts := make([]trade.Account, 1)
-
-	// Bcs provide token per portfolio and haven't portfolio info API.
-	// Assign account from first position in portfolio.
-	accounts[0].ID = rawPos[0].AccountID
-	accounts[0].Name = rawPos[0].AccountID
+	accounts[0].ID = a.accountID
+	accounts[0].Name = a.accountID
 
 	return accounts, nil
 }
 
 func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error) {
+	if a.accountID != accountID {
+		return trade.Portfolio{}, fmt.Errorf("bcs: portfolio: %w", broker.ErrInvalidAccountID)
+	}
+
 	rawPos, err := a.portfolio(ctx)
 	if err != nil {
 		return trade.Portfolio{}, err
@@ -102,8 +108,8 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	}
 
 	portfolio := trade.Portfolio{
-		AccountID: accountID,
-		Name:      accountID,
+		AccountID: a.accountID,
+		Name:      a.accountID,
 		Currency:  trade.RUB, // BCS haven't portfolio info API.
 		Positions: pos,
 	}
@@ -112,6 +118,10 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 }
 
 func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
+	if a.accountID != accountID {
+		return nil, fmt.Errorf("bcs: orders: %w", broker.ErrInvalidAccountID)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, ordersURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("bcs: orders: %w", err)
@@ -162,6 +172,10 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 }
 
 func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error) {
+	if a.accountID != accountID {
+		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", broker.ErrInvalidAccountID)
+	}
+
 	url := fmt.Sprintf(orderStateURL, orderID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -212,6 +226,10 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 }
 
 func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.Order) (string, error) {
+	if a.accountID != accountID {
+		return "", fmt.Errorf("bcs: place order: %w", broker.ErrInvalidAccountID)
+	}
+
 	instr, err := a.InstrumentByTicker(ctx, order.Ticker)
 	if err != nil {
 		return "", err
@@ -256,6 +274,10 @@ func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.
 }
 
 func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
+	if a.accountID != accountID {
+		return fmt.Errorf("bcs: cancel order: %w", broker.ErrInvalidAccountID)
+	}
+
 	url := fmt.Sprintf(cancelOrderURL, orderID)
 
 	clientOrderId, err := uuid.NewRandom()

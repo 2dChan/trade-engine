@@ -6,7 +6,10 @@
 // its implementations. Use [errors.Is] to distinguish error categories.
 package broker
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	// Access errors — valid request, caller lacks credentials or permissions.
@@ -20,6 +23,8 @@ var (
 
 	// ErrInvalidRequest — malformed request or invalid parameters (HTTP 400, 415).
 	ErrInvalidRequest = errors.New("invalid request")
+	// ErrInvalidAccountID — invalid or missing account identifier provided.
+	ErrInvalidAccountID = fmt.Errorf("invalid account id: %w", ErrInvalidRequest)
 	// ErrNotFound — requested resource does not exist (HTTP 404).
 	ErrNotFound = errors.New("not found")
 	// ErrConflict — operation conflicts with current resource state (HTTP 409).
