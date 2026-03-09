@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/2dChan/trade-engine/internal/broker"
@@ -122,25 +123,9 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 		return nil, fmt.Errorf("bcs: orders: %w", broker.ErrInvalidAccountID)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, ordersURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("bcs: orders: %w", err)
-	}
-
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("bcs: orders: %w", err)
-	}
-	//nolint:errcheck
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, parseErrorResponse("orders", resp)
-	}
-
 	var ordResp ordersSearchResponse
-	if err = json.NewDecoder(resp.Body).Decode(&ordResp); err != nil {
-		return nil, fmt.Errorf("bcs: orders: decode response: %w", err)
+	if err := a.doRequest(ctx, "orders", http.MethodPost, ordersURL, nil, &ordResp); err != nil {
+		return nil, err
 	}
 
 	res := make([]trade.OrderState, len(ordResp.Records))
@@ -178,25 +163,9 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 
 	url := fmt.Sprintf(orderStateURL, orderID)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
-	}
-
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state: %w", err)
-	}
-	//nolint:errcheck
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return trade.OrderState{}, parseErrorResponse("order state", resp)
-	}
-
 	var rawState orderState
-	if err = json.NewDecoder(resp.Body).Decode(&rawState); err != nil {
-		return trade.OrderState{}, fmt.Errorf("bcs: order state: decode response: %w", err)
+	if err := a.doRequest(ctx, "order state", http.MethodGet, url, nil, &rawState); err != nil {
+		return trade.OrderState{}, err
 	}
 
 	status, err := convertOrderStatusToTrade(rawState.Data.Status)
@@ -245,26 +214,10 @@ func (a *Adapter) PlaceOrder(ctx context.Context, accountID string, order trade.
 		return "", fmt.Errorf("bcs: place order: marshal: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, placeOrderURL, bytes.NewReader(body))
-	if err != nil {
-		return "", fmt.Errorf("bcs: place order: %w", err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("bcs: place order: %w", err)
-	}
-	//nolint:errcheck
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", parseErrorResponse("place order", resp)
-	}
-
 	var res orderOperationResponse
-	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return "", fmt.Errorf("bcs: place order: decode response: %w", err)
+	err = a.doRequest(ctx, "place order", http.MethodPost, placeOrderURL, bytes.NewReader(body), &res)
+	if err != nil {
+		return "", err
 	}
 	if res.Status != "OK" {
 		return "", fmt.Errorf("bcs: place order: status %q", res.Status)
@@ -293,26 +246,10 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 		return fmt.Errorf("bcs: cancel order: marshal: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("bcs: cancel order: %w", err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return fmt.Errorf("bcs: cancel order: %w", err)
-	}
-	//nolint:errcheck
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return parseErrorResponse("cancel order", resp)
-	}
-
 	var res orderOperationResponse
-	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return fmt.Errorf("bcs: cancel order: decode response: %w", err)
+	err = a.doRequest(ctx, "cancel order", http.MethodPost, url, bytes.NewReader(body), &res)
+	if err != nil {
+		return err
 	}
 	if res.Status != "OK" {
 		return fmt.Errorf("bcs: cancel order: status %q", res.Status)
@@ -344,26 +281,10 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 		return nil, fmt.Errorf("bcs: instruments: marshal: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, instrumentsByTickersURL, bytes.NewReader(body))
-	if err != nil {
-		return nil, fmt.Errorf("bcs: instruments: %w", err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("bcs: instruments: %w", err)
-	}
-	//nolint:errcheck
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, parseErrorResponse("instruments", resp)
-	}
-
 	var rawInstrs []instrument
-	if err = json.NewDecoder(resp.Body).Decode(&rawInstrs); err != nil {
-		return nil, fmt.Errorf("bcs: instruments: decode response: %w", err)
+	err = a.doRequest(ctx, "instruments", http.MethodPost, instrumentsByTickersURL, bytes.NewReader(body), &rawInstrs)
+	if err != nil {
+		return nil, err
 	}
 
 	// Most of the positions in the portfolio are repeated with other boards.
@@ -389,26 +310,40 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	return instrs, nil
 }
 
-func (a *Adapter) portfolio(ctx context.Context) ([]position, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, portfolioURL, nil)
+// doRequest executes an HTTP request against the BCS API.
+// If body is non-nil, Content-Type is set to application/json automatically.
+// On success the response body is decoded into target (must be a non-nil pointer).
+func (a *Adapter) doRequest(ctx context.Context, op, method, url string, body io.Reader, target any) error {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: portfolio: %w", err)
+		return fmt.Errorf("bcs: %s: %w", op, err)
+	}
+	if body != nil {
+		req.Header.Add("Content-Type", "application/json")
 	}
 
 	resp, err := a.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("bcs: portfolio: %w", err)
+		return fmt.Errorf("bcs: %s: %w", op, err)
 	}
 	//nolint:errcheck
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, parseErrorResponse("portfolio", resp)
+		return parseErrorResponse(op, resp)
 	}
 
+	if err = json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return fmt.Errorf("bcs: %s: decode response: %w", op, err)
+	}
+
+	return nil
+}
+
+func (a *Adapter) portfolio(ctx context.Context) ([]position, error) {
 	var pos []position
-	if err = json.NewDecoder(resp.Body).Decode(&pos); err != nil {
-		return nil, fmt.Errorf("bcs: portfolio: decode response: %w", err)
+	if err := a.doRequest(ctx, "portfolio", http.MethodGet, portfolioURL, nil, &pos); err != nil {
+		return nil, err
 	}
 	if len(pos) == 0 {
 		return nil, fmt.Errorf("bcs: portfolio: no positions")
