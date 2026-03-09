@@ -65,7 +65,7 @@ func Portfolio(ctx context.Context, a broker.Broker) {
 		return
 	}
 
-	fmt.Printf("  Account: %s\n  Postions:\n", p.AccountID)
+	fmt.Printf("  Account: %s\n  Postions:\n", p.Name)
 	for _, pos := range p.Positions {
 		bp, _ := pos.AveragePrice.Float64()
 		cp, _ := pos.CurrentPrice.Float64()
