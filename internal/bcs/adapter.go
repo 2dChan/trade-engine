@@ -108,7 +108,6 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	}
 
 	portfolio := trade.Portfolio{
-		AccountID: a.accountID,
 		Name:      a.accountID,
 		Currency:  trade.RUB, // BCS haven't portfolio info API.
 		Positions: pos,

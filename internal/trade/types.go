@@ -32,7 +32,6 @@ type Position struct {
 
 type Portfolio struct {
 	Name      string
-	AccountID string
 	Currency  CurrencyCode
 	Positions []Position
 }
