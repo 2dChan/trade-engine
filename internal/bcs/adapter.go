@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/2dChan/trade-engine/internal/broker"
 	"github.com/2dChan/trade-engine/internal/trade"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
@@ -303,8 +304,12 @@ func (a *Adapter) InstrumentByTicker(ctx context.Context, ticker string) (trade.
 	if err != nil {
 		return trade.Instrument{}, err
 	}
-	if len(instrs) != 1 {
-		return trade.Instrument{}, fmt.Errorf("bcs: instrument %q not found", ticker)
+
+	if len(instrs) == 0 {
+		return trade.Instrument{}, fmt.Errorf("bcs: instrument %q: %w", ticker, broker.ErrNotFound)
+	}
+	if len(instrs) > 1 {
+		return trade.Instrument{}, fmt.Errorf("bcs: instrument %q: duplicate results: %w", ticker, broker.ErrUnexpectedResponse)
 	}
 
 	return instrs[0], nil

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/2dChan/trade-engine/internal/broker"
 	"github.com/2dChan/trade-engine/internal/trade"
 	"github.com/google/uuid"
 	"github.com/govalues/decimal"
@@ -57,7 +58,7 @@ func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
 
 	quantity, frac, ok := tradeOrd.Quantity.Int64(0)
 	if !ok || frac != 0 {
-		return order{}, fmt.Errorf("quantity %q is not an integer", tradeOrd.Quantity)
+		return order{}, fmt.Errorf("quantity %q is not an integer: %w", tradeOrd.Quantity, broker.ErrInvalidRequest)
 	}
 
 	ord := order{
@@ -71,7 +72,7 @@ func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
 
 	if ord.Type == limit {
 		if tradeOrd.Price == decimal.Zero {
-			return order{}, fmt.Errorf("limit order price must be > 0")
+			return order{}, fmt.Errorf("limit order price must be > 0: %w", broker.ErrInvalidRequest)
 		}
 		ord.Price = json.Number(tradeOrd.Price.String())
 	}

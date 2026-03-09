@@ -74,13 +74,15 @@ func parseErrorResponse(op string, resp *http.Response) error {
 func sentinelForType(t errorType) error {
 	switch t {
 	case errorValidation, errorBadRequest:
-		return broker.ErrBadRequest
+		return broker.ErrInvalidRequest
 	case errorUnauthorized, errorSessionNotFound, errorSessionExpired, errorSessionFailed:
 		return broker.ErrUnauthorized
 	case errorForbidden, errorUserBlocked:
 		return broker.ErrForbidden
 	case errorNotFound:
 		return broker.ErrNotFound
+	case errorConflict:
+		return broker.ErrConflict
 	case errorResourceExhausted:
 		return broker.ErrRateLimited
 	default:
@@ -91,7 +93,7 @@ func sentinelForType(t errorType) error {
 func sentinelForStatus(code int) error {
 	switch code {
 	case http.StatusBadRequest, http.StatusUnsupportedMediaType:
-		return broker.ErrBadRequest
+		return broker.ErrInvalidRequest
 	case http.StatusUnauthorized:
 		return broker.ErrUnauthorized
 	case http.StatusForbidden:
