@@ -247,7 +247,7 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 	}
 
 	var res orderOperationResponse
-	if err = a.doRequest(ctx, http.MethodPost, url, bytes.NewReader(body), &res); err != nil {
+	if err := a.doRequest(ctx, http.MethodPost, url, bytes.NewReader(body), &res); err != nil {
 		return fmt.Errorf("bcs: cancel order: %w", err)
 	}
 	if res.Status != "OK" {
@@ -332,7 +332,7 @@ func (a *Adapter) doRequest(ctx context.Context, method, url string, body io.Rea
 		return parseErrorResponse(resp)
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(target); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
 		return fmt.Errorf("decode response: %w", err)
 	}
 
