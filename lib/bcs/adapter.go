@@ -12,8 +12,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/2dChan/trade-engine/internal/broker"
-	"github.com/2dChan/trade-engine/internal/trade"
+	"github.com/2dChan/trade-engine/lib/broker"
+	"github.com/2dChan/trade-engine/lib/trade"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 )
@@ -125,7 +125,7 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 
 	var ordResp ordersSearchResponse
 	if err := a.doRequest(ctx, http.MethodPost, ordersURL, nil, &ordResp); err != nil {
-		return nil, fmt.Errorf("bcs: orders:  %w", err)
+		return nil, fmt.Errorf("bcs: orders: %w", err)
 	}
 
 	res := make([]trade.OrderState, len(ordResp.Records))

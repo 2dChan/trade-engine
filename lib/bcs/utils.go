@@ -7,7 +7,7 @@ package bcs
 import (
 	"fmt"
 
-	"github.com/2dChan/trade-engine/internal/trade"
+	"github.com/2dChan/trade-engine/lib/trade"
 )
 
 func searchBoard(boards []board, exchange string) (board, bool) {

@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/2dChan/trade-engine/internal/broker"
+	"github.com/2dChan/trade-engine/lib/broker"
 )
 
 type errorType string
