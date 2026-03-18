@@ -6,9 +6,24 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(ci): "
+
   - package-ecosystem: gomod
-    directory: "/"
+    directory: "/trade-lib"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "chore: "
+      prefix: "chore(trade-lib): "
+
+  - package-ecosystem: gomod
+    directory: "/bots"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(bots): "
+
+  - package-ecosystem: gomod
+    directory: "/dashboard/backend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(backend): "
