@@ -1,4 +1,4 @@
-name: Go Build and Test
+name: Go
 
 permissions:
   contents: read
@@ -10,15 +10,55 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-test:
+  build-test-lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - lib
+          - bots
+          - dashboard/backend
+
+    name: ${{ matrix.module }}
     steps:
       - uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26'
+          go-version: '1.26.1'
+          check-latest: true
+          cache: true
+          cache-dependency-path: ${{ matrix.module }}/go.sum
+
+      - name:  Verify dependencies
+        run: |
+          go mod verify
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Fmt
+        run: |
+          if [[ $(gofmt -l . | tee /dev/stderr) ]]; then
+            echo "Code is not gofmt-ed, run gofmt!"
+            exit 1
+          fi
+
+      - name: Security scan
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9.2.0
+        with:
+          version: latest 
+          working-directory: ${{ matrix.module }}
+          args: "--enable=gosec --timeout=5m"
 
       - name: Build
         run: |
@@ -28,3 +68,12 @@ jobs:
         run: |
           go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
           go tool cover -func=coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: matrix.module == 'backend'
+        with:
+          files: ${{ matrix.module }}/coverage.out
+          flags: ${{ matrix.module }}
+          fail_ci_if_error:  false
+
