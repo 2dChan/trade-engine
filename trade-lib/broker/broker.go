@@ -7,7 +7,7 @@ package broker
 import (
 	"context"
 
-	"github.com/2dChan/trade-engine/internal/trade"
+	"github.com/2dChan/trade-engine/trade-lib/trade"
 )
 
 type Broker interface {

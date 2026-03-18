@@ -5,11 +5,10 @@
 package bcs
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/2dChan/trade-engine/internal/broker"
-	"github.com/2dChan/trade-engine/internal/trade"
+	"github.com/2dChan/trade-engine/trade-lib/broker"
+	"github.com/2dChan/trade-engine/trade-lib/trade"
 	"github.com/google/uuid"
 	"github.com/govalues/decimal"
 )
@@ -31,13 +30,13 @@ type position struct {
 // Orders
 
 type order struct {
-	ID        string         `json:"clientOrderId"`
-	Ticker    string         `json:"ticker"`
-	ClassCode string         `json:"classCode"`
-	Direction orderDirection `json:"side"`
-	Type      orderType      `json:"orderType"`
-	Price     json.Number    `json:"price,omitempty"`
-	Quantity  int64          `json:"orderQuantity"`
+	ID        string          `json:"clientOrderId"`
+	Ticker    string          `json:"ticker"`
+	ClassCode string          `json:"classCode"`
+	Direction orderDirection  `json:"side"`
+	Type      orderType       `json:"orderType"`
+	Price     decimal.Decimal `json:"price,omitempty"`
+	Quantity  int64           `json:"orderQuantity"`
 }
 
 func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
@@ -74,7 +73,7 @@ func newOrder(tradeOrd trade.Order, classCode string) (order, error) {
 		if tradeOrd.Price == decimal.Zero {
 			return order{}, fmt.Errorf("limit order price must be > 0: %w", broker.ErrInvalidRequest)
 		}
-		ord.Price = json.Number(tradeOrd.Price.String())
+		ord.Price = tradeOrd.Price
 	}
 
 	return ord, nil
