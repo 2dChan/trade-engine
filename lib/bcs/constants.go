@@ -70,3 +70,21 @@ const (
 	termT2   term = "T2"
 	termT365 term = "T365"
 )
+
+type instrumentType string
+
+const (
+	instrumentCurrency           instrumentType = "CURRENCY"
+	instrumentStock              instrumentType = "STOCK"
+	instrumentForeignStock       instrumentType = "FOREIGN_STOCK"
+	instrumentDepositaryReceipts instrumentType = "DEPOSITARY_RECEIPTS"
+	instrumentBonds              instrumentType = "BONDS"
+	instrumentEuroBonds          instrumentType = "EURO_BONDS"
+	instrumentNotes              instrumentType = "NOTES"
+	instrumentMutualFunds        instrumentType = "MUTUAL_FUNDS"
+	instrumentEtf                instrumentType = "ETF"
+	instrumentFutures            instrumentType = "FUTURES"
+	instrumentOptions            instrumentType = "OPTIONS"
+	instrumentGoods              instrumentType = "GOODS"
+	instrumentIndices            instrumentType = "INDICES"
+)

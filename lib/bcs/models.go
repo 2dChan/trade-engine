@@ -19,7 +19,7 @@ type position struct {
 	AccountID      string          `json:"account"`
 	DisplayName    string          `json:"displayName"`
 	Ticker         string          `json:"ticker"`
-	InstrumentType string          `json:"instrumentType"`
+	InstrumentType instrumentType  `json:"instrumentType"`
 	Term           term            `json:"term"`
 	Currency       string          `json:"currency"`
 	BalancePrice   decimal.Decimal `json:"balancePrice"`
@@ -123,7 +123,7 @@ type board struct {
 type instrument struct {
 	Name         string             `json:"displayName"`
 	Ticker       string             `json:"ticker"`
-	Type         string             `json:"instrumentType"`
+	Type         instrumentType     `json:"instrumentType"`
 	PrimaryBoard string             `json:"primaryboard"`
 	Boards       []board            `json:"boards"`
 	Currency     trade.CurrencyCode `json:"tradingCurrency"`
