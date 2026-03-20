@@ -19,6 +19,17 @@ func searchBoard(boards []board, exchange string) (board, bool) {
 	return board{}, false
 }
 
+// searchAnyBoard returns the first board whose Exchange matches any of the
+// provided exchanges, along with a boolean indicating whether a match was found.
+func searchAnyBoard(boards []board, exchanges []string) (board, bool) {
+	for _, exchange := range exchanges {
+		if b, ok := searchBoard(boards, exchange); ok {
+			return b, true
+		}
+	}
+	return board{}, false
+}
+
 // BCS to Trade
 
 func convertOrderDirectionToTrade(d orderDirection) (trade.OrderDirection, error) {
