@@ -94,10 +94,18 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	minLen := len(rawPos) / 4
 	pos := make([]trade.Position, 0, minLen)
 	for _, r := range rawPos {
+		ticker := r.Ticker
+		// Normalize currency ticker: BCS returns a short ticker (e.g. "USD") in the
+		// portfolio, but uses the full MOEX format (e.g. "USD000SMALL") everywhere
+		// else (orders, instruments lookup, etc.).
+		if r.InstrumentType == instrumentCurrency {
+			ticker = fmt.Sprintf("%s000SMALL", ticker)
+		}
+
 		if r.Term == termT0 {
 			p := trade.Position{
 				Name:         r.DisplayName,
-				Ticker:       r.Ticker,
+				Ticker:       ticker,
 				Type:         parseInstrumentTypeToTrade(r.InstrumentType),
 				Currency:     trade.CurrencyCode(r.Currency),
 				AveragePrice: r.BalancePrice,
