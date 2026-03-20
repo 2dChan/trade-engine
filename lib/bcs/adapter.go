@@ -29,8 +29,6 @@ const (
 	cancelOrderURL          = baseURL + "trade-api-bff-operations/api/v1/orders/%s/cancel"
 	orderStateURL           = baseURL + "trade-api-bff-operations/api/v1/orders/%s"
 	instrumentsByTickersURL = baseURL + "trade-api-information-service/api/v1/instruments/by-tickers"
-
-	moex = "MOEX"
 )
 
 type Adapter struct {
@@ -295,11 +293,12 @@ func (a *Adapter) InstrumentsByTickers(ctx context.Context, tickers []string) ([
 	}
 
 	// Most of the positions in the portfolio are repeated with other boards.
-	// NOTE: For MVP supports only MOEX.
+	// Supported exchanges: MOEX and "OTC Валюта".
+	supportedExchanges := []string{"MOEX", "OTC Валюта"}
 	maxLen := len(rawInstrs)
 	instrs := make([]trade.Instrument, 0, maxLen)
 	for _, rawInstr := range rawInstrs {
-		board, ok := searchBoard(rawInstr.Boards, moex)
+		board, ok := searchAnyBoard(rawInstr.Boards, supportedExchanges)
 		if ok && board.ClassCode == rawInstr.PrimaryBoard {
 			instr := trade.Instrument{
 				Name:      rawInstr.Name,
