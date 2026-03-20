@@ -57,25 +57,25 @@ func convertOrderTypeToTrade(t orderType) (trade.OrderType, error) {
 	return trade.Limit, fmt.Errorf("unsupported order type %v", t)
 }
 
-func parseInstrumentTypeToTrade(s string) trade.InstrumentType {
+func parseInstrumentTypeToTrade(s instrumentType) trade.InstrumentType {
 	switch s {
-	case "CURRENCY":
+	case instrumentCurrency:
 		return trade.Currency
-	case "STOCK", "FOREIGN_STOCK", "DEPOSITARY_RECEIPTS":
+	case instrumentStock, instrumentForeignStock, instrumentDepositaryReceipts:
 		return trade.Share
-	case "BONDS", "EURO_BONDS", "NOTES":
+	case instrumentBonds, instrumentEuroBonds, instrumentNotes:
 		return trade.Bond
-	case "MUTUAL_FUNDS":
+	case instrumentMutualFunds:
 		return trade.Sp
-	case "ETF":
+	case instrumentEtf:
 		return trade.Etf
-	case "FUTURES":
+	case instrumentFutures:
 		return trade.Futures
-	case "OPTIONS":
+	case instrumentOptions:
 		return trade.Option
-	case "GOODS":
+	case instrumentGoods:
 		return trade.Commodity
-	case "INDICES":
+	case instrumentIndices:
 		return trade.Index
 	default:
 		return trade.Unspecified
