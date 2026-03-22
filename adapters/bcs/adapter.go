@@ -36,6 +36,8 @@ type Adapter struct {
 	accountID string
 }
 
+var _ broker.Broker = (*Adapter)(nil)
+
 func NewAdapter(ctx context.Context, token string) (*Adapter, error) {
 	tok := &oauth2.Token{
 		RefreshToken: token,
