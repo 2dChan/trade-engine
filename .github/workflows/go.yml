@@ -20,6 +20,7 @@ jobs:
       matrix:
         module:
           - lib
+          - adapters/bcs
           - bots
           - dashboard/backend
 
