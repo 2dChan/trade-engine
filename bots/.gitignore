@@ -1,0 +1,3 @@
+# Config
+cmd/*/config.go
+!cmd/example/config.go
