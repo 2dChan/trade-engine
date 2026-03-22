@@ -72,9 +72,8 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
-        if: matrix.module == 'backend'
         with:
           files: ${{ matrix.module }}/coverage.out
           flags: ${{ matrix.module }}
-          fail_ci_if_error:  false
+          fail_ci_if_error: false
 
