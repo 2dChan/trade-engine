@@ -1,0 +1,4 @@
+github.com/2dChan/trade-engine/lib v0.1.0 h1:DwLTV+LVaDC3mEPYSv/KeYB9onl9a2f6m7yOQch/lxk=
+github.com/2dChan/trade-engine/lib v0.1.0/go.mod h1:5pckDYiP0Rf9WI8jzvMqpU30XmkozsRBElN1bVvop84=
+github.com/govalues/decimal v0.1.36 h1:dojDpsSvrk0ndAx8+saW5h9WDIHdWpIwrH/yhl9olyU=
+github.com/govalues/decimal v0.1.36/go.mod h1:Ee7eI3Llf7hfqDZtpj8Q6NCIgJy1iY3kH1pSwDrNqlM=

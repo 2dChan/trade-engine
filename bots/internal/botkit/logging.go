@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func newLogger() *slog.Logger {
+func NewLogger() *slog.Logger {
 	opts := &slog.HandlerOptions{}
 	var handler slog.Handler
 	if os.Getenv("APP_ENV") == "dev" {
