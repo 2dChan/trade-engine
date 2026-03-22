@@ -5,9 +5,44 @@
 package main
 
 import (
+	"context"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/2dChan/trade-engine/adapters/bcs"
 	"github.com/2dChan/trade-engine/bots/internal/botkit"
+	"github.com/2dChan/trade-engine/lib/broker"
 )
 
+func run(logger *slog.Logger) error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	token, err := cfg.Token()
+	if err != nil {
+		return err
+	}
+	b, err := bcs.NewAdapter(ctx, token)
+	if err != nil {
+		return err
+	}
+	p, err := broker.NewProxy(b, cfg.AccountID)
+	if err != nil {
+		return err
+	}
+
+	bot := botkit.NewBot(logger, p)
+
+	return bot.Run(ctx)
+}
+
 func main() {
-	botkit.Run()
+	logger := botkit.NewLogger()
+
+	if err := run(logger); err != nil {
+		logger.Error("bot failed", "error", err)
+		os.Exit(1)
+	}
 }
