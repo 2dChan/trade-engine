@@ -23,3 +23,6 @@ go.work.sum
 
 # env file
 .env
+
+# Config
+bots/cmd/*/config.go
