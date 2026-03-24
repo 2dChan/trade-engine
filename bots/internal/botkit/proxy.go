@@ -27,6 +27,10 @@ func (p Proxy) Name() string {
 	return p.broker.Name()
 }
 
+func (p Proxy) AccountID() string {
+	return p.accountID
+}
+
 func (p Proxy) Portfolio(ctx context.Context) (trade.Portfolio, error) {
 	return p.broker.Portfolio(ctx, p.accountID)
 }
