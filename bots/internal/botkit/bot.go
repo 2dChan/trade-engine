@@ -7,16 +7,14 @@ package botkit
 import (
 	"context"
 	"log/slog"
-
-	"github.com/2dChan/trade-engine/lib/broker"
 )
 
 type Bot struct {
 	logger *slog.Logger
-	proxy  broker.Proxy
+	proxy  Proxy
 }
 
-func NewBot(logger *slog.Logger, proxy broker.Proxy) Bot {
+func NewBot(logger *slog.Logger, proxy Proxy) Bot {
 	logger = logger.With("broker", proxy.Name())
 
 	return Bot{
