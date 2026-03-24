@@ -14,12 +14,12 @@ type Bot struct {
 	proxy  Proxy
 }
 
-func NewBot(logger *slog.Logger, proxy Proxy) Bot {
-	logger = logger.With("broker", proxy.Name())
+func NewBot(logger *slog.Logger, prx Proxy) Bot {
+	logger = logger.With("broker", prx.Name())
 
 	return Bot{
 		logger: logger,
-		proxy:  proxy,
+		proxy:  prx,
 	}
 }
 

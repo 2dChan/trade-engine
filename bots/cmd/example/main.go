@@ -23,16 +23,16 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	b, err := bcs.NewAdapter(ctx, token)
+	brk, err := bcs.NewAdapter(ctx, token)
 	if err != nil {
 		return err
 	}
-	p, err := botkit.NewProxy(b, cfg.AccountID)
+	prx, err := botkit.NewProxy(brk, cfg.AccountID)
 	if err != nil {
 		return err
 	}
 
-	bot := botkit.NewBot(logger, p)
+	bot := botkit.NewBot(logger, prx)
 
 	return bot.Run(ctx)
 }
