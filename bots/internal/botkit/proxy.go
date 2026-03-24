@@ -6,6 +6,7 @@ package botkit
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
@@ -16,10 +17,23 @@ type Proxy struct {
 	accountID string
 }
 
-func NewProxy(b broker.Broker, accountID string) (Proxy, error) {
-	if accountID == "" {
-		return Proxy{}, broker.ErrInvalidAccountID
+func NewProxy(ctx context.Context, b broker.Broker, accountID string) (Proxy, error) {
+	accounts, err := b.Accounts(ctx)
+	if err != nil {
+		return Proxy{}, fmt.Errorf("botkit: new proxy: %w", err)
 	}
+
+	ok := false
+	for _, a := range accounts {
+		if a.ID == accountID {
+			ok = true
+			break
+		}
+	}
+	if !ok {
+		return Proxy{}, fmt.Errorf("botkit: new proxy: account %q: %w", accountID, broker.ErrInvalidAccountID)
+	}
+
 	return Proxy{broker: b, accountID: accountID}, nil
 }
 

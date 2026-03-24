@@ -27,7 +27,7 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	prx, err := botkit.NewProxy(brk, cfg.AccountID)
+	prx, err := botkit.NewProxy(ctx, brk, cfg.AccountID)
 	if err != nil {
 		return err
 	}
