@@ -13,7 +13,6 @@ import (
 
 	"github.com/2dChan/trade-engine/adapters/bcs"
 	"github.com/2dChan/trade-engine/bots/internal/botkit"
-	"github.com/2dChan/trade-engine/lib/broker"
 )
 
 func run(logger *slog.Logger) error {
@@ -28,7 +27,7 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	p, err := broker.NewProxy(b, cfg.AccountID)
+	p, err := botkit.NewProxy(b, cfg.AccountID)
 	if err != nil {
 		return err
 	}

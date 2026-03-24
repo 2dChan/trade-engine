@@ -2,22 +2,23 @@
 // Licensed under the GNU Affero General Public License v3.0 or later.
 // See the LICENSE file in the project root for the full license text.
 
-package broker
+package botkit
 
 import (
 	"context"
 
+	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
 )
 
 type Proxy struct {
-	broker    Broker
+	broker    broker.Broker
 	accountID string
 }
 
-func NewProxy(b Broker, accountID string) (Proxy, error) {
+func NewProxy(b broker.Broker, accountID string) (Proxy, error) {
 	if accountID == "" {
-		return Proxy{}, ErrInvalidAccountID
+		return Proxy{}, broker.ErrInvalidAccountID
 	}
 	return Proxy{broker: b, accountID: accountID}, nil
 }
