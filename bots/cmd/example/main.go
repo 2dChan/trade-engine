@@ -13,6 +13,7 @@ import (
 
 	"github.com/2dChan/trade-engine/adapters/bcs"
 	"github.com/2dChan/trade-engine/bots/internal/botkit"
+	"github.com/2dChan/trade-engine/bots/internal/logging"
 )
 
 func run(logger *slog.Logger) error {
@@ -38,7 +39,7 @@ func run(logger *slog.Logger) error {
 }
 
 func main() {
-	logger := botkit.NewLogger()
+	logger := logging.NewLogger()
 
 	if err := run(logger); err != nil {
 		logger.Error("bot failed", "error", err)
