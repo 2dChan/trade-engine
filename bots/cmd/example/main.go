@@ -32,9 +32,9 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
-	bot := botkit.NewBot(logger, prx)
+	_ = prx
 
-	return bot.Run(ctx)
+	return nil
 }
 
 func main() {
