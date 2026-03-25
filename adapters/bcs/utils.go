@@ -6,9 +6,17 @@ package bcs
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/2dChan/trade-engine/lib/trade"
 )
+
+// trimAccountYear strips the trailing "/YEAR" suffix from a BCS account ID
+// (e.g. "1234567/26" → "1234567")
+func trimAccountYear(id string) string {
+	base, _, _ := strings.Cut(id, "/")
+	return base
+}
 
 func searchBoard(boards []board, exchange string) (board, bool) {
 	for _, b := range boards {

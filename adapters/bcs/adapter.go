@@ -62,7 +62,7 @@ func NewAdapter(ctx context.Context, token string) (*Adapter, error) {
 	if len(rawPos) == 0 {
 		return nil, fmt.Errorf("bcs: portfolio empty: failed to get account id")
 	}
-	a.accountID = rawPos[0].AccountID
+	a.accountID = trimAccountYear(rawPos[0].AccountID)
 
 	return a, nil
 }
