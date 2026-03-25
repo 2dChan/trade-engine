@@ -37,7 +37,8 @@ func lookup(path, key string) (string, error) {
 			continue
 		}
 		if bytes.HasPrefix(line, bkey) {
-			return string(line[len(bkey):]), nil
+			value := bytes.TrimRight(line[len(bkey):], "\r")
+			return string(value), nil
 		}
 	}
 	return "", fmt.Errorf("lookup: key %q not found", key)
