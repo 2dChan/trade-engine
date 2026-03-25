@@ -38,7 +38,7 @@ func run(logger *slog.Logger) error {
 	// TODO: Choose strategy via config.
 	strategy := rebalance.NewStrategy()
 
-	slogger := logger.With("broker", prx.Name(), "strategy", strategy.Name())
+	slogger := logger.With("broker", prx.Name(), "account", prx.Account(), "strategy", strategy.Name())
 	err = strategy.Run(ctx, slogger, prx)
 	stop()
 

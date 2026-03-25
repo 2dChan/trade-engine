@@ -7,6 +7,7 @@ package botkit
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
@@ -14,7 +15,7 @@ import (
 
 type Proxy struct {
 	broker  broker.Broker
-	account trade.Account
+	account ProxyAccount
 }
 
 func NewProxy(ctx context.Context, b broker.Broker, accountID string) (Proxy, error) {
@@ -23,11 +24,11 @@ func NewProxy(ctx context.Context, b broker.Broker, accountID string) (Proxy, er
 		return Proxy{}, fmt.Errorf("botkit: new proxy: %w", err)
 	}
 
-	var account trade.Account
+	var account ProxyAccount
 	ok := false
 	for _, a := range accounts {
 		if a.ID == accountID {
-			account = a
+			account.Account = a
 			ok = true
 			break
 		}
@@ -43,7 +44,7 @@ func (p Proxy) Name() string {
 	return p.broker.Name()
 }
 
-func (p Proxy) Account() trade.Account {
+func (p Proxy) Account() ProxyAccount {
 	return p.account
 }
 
@@ -73,4 +74,22 @@ func (p Proxy) InstrumentByTicker(ctx context.Context, ticker string) (trade.Ins
 
 func (p Proxy) InstrumentsByTickers(ctx context.Context, tickers []string) ([]trade.Instrument, error) {
 	return p.broker.InstrumentsByTickers(ctx, tickers)
+}
+
+type ProxyAccount struct {
+	trade.Account
+}
+
+func (a ProxyAccount) LogValue() slog.Value {
+	const (
+		visible = 4
+		mask    = "*"
+	)
+
+	id := mask
+	if len(a.ID) > visible {
+		id = mask + a.ID[len(a.ID)-visible:]
+	}
+
+	return slog.StringValue(id)
 }
