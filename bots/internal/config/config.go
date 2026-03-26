@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type Config struct {
@@ -27,7 +28,8 @@ func (c Config) Token() (string, error) {
 }
 
 func lookup(path, key string) (string, error) {
-	data, err := os.ReadFile(path)
+	cpath := filepath.Clean(path)
+	data, err := os.ReadFile(cpath)
 	if err != nil {
 		return "", fmt.Errorf("lookup: %w", err)
 	}
