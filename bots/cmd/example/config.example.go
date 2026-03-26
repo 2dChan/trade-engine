@@ -6,6 +6,7 @@ package main
 
 import "github.com/2dChan/trade-engine/bots/internal/config"
 
+//nolint:gosec
 var cfg = config.Config{
 	AccountID: "YOUR_ACCOUNT_ID",
 	TokenVar:  "TOKEN_ENV_VAR",
