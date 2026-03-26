@@ -19,7 +19,7 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "chore(adapters/bcs): "
+      prefix: "chore(adapters,bcs): "
 
   - package-ecosystem: gomod
     directory: "/bots"
