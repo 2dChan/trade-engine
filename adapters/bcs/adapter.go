@@ -72,11 +72,7 @@ func (a *Adapter) Name() string {
 }
 
 func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
-	accounts := make([]trade.Account, 1)
-	accounts[0].ID = a.accountID
-	accounts[0].Name = a.accountID
-
-	return accounts, nil
+	return []trade.Account{{ID: a.accountID, Name: a.accountID}}, nil
 }
 
 func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error) {
