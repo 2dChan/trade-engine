@@ -14,7 +14,6 @@ import (
 	"github.com/2dChan/trade-engine/adapters/bcs"
 	"github.com/2dChan/trade-engine/bots/internal/botkit"
 	"github.com/2dChan/trade-engine/bots/internal/logging"
-	"github.com/2dChan/trade-engine/bots/internal/strategies/rebalance"
 )
 
 func run(logger *slog.Logger) error {
@@ -36,8 +35,7 @@ func run(logger *slog.Logger) error {
 	}
 
 	// TODO: Choose strategy via config.
-	strategy := rebalance.NewStrategy()
-
+	var strategy botkit.Strategy
 	slogger := logger.With("broker", prx.Name(), "account", prx.Account(), "strategy", strategy.Name())
 	err = strategy.Run(ctx, slogger, prx)
 	stop()
