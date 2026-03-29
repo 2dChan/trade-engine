@@ -1,6 +1,6 @@
 module github.com/2dChan/trade-engine/adapters/bcs
 
-go 1.26.0
+go 1.26.1
 
 require (
 	github.com/2dChan/trade-engine/lib v0.1.0
