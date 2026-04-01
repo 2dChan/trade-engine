@@ -12,3 +12,5 @@ var cfg = config.Config{
 	TokenVar:  "TOKEN_ENV_VAR",
 	EnvPath:   ".env",
 }
+
+var strategyCfg any
