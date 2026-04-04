@@ -18,6 +18,12 @@ type Broker interface {
 	OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error)
 	PlaceOrder(ctx context.Context, accountID string, order trade.Order) (string, error)
 	CancelOrder(ctx context.Context, accountID string, orderID string) error
-	InstrumentByTicker(ctx context.Context, ticker string) (trade.Instrument, error)
-	InstrumentsByTickers(ctx context.Context, tickers []string) ([]trade.Instrument, error)
+	InstrumentByTicker(ctx context.Context, key TickerSegment) (trade.Instrument, error)
+	InstrumentsByTickers(ctx context.Context, keys []TickerSegment) ([]trade.Instrument, error)
+	Close() error
+}
+
+type TickerSegment struct {
+	Ticker  string
+	Segment string
 }

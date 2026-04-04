@@ -2,11 +2,15 @@
 // Licensed under the GNU Affero General Public License v3.0 or later.
 // See the LICENSE file in the project root for the full license text.
 
-package trade
+package asset
 
-type CurrencyCode string
+type Code string
 
 const (
-	RUB CurrencyCode = "RUB"
-	USD CurrencyCode = "USD"
+	AssetXXX Code = "XXX"
+	// Fiat
+	AssetRUB Code = "RUB"
+	AssetUSD Code = "USD"
+	AssetEUR Code = "EUR"
+	AssetCNY Code = "CNY"
 )
