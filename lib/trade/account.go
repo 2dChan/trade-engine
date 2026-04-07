@@ -4,9 +4,7 @@
 
 package trade
 
-type CurrencyCode string
-
-const (
-	RUB CurrencyCode = "RUB"
-	USD CurrencyCode = "USD"
-)
+type Account struct {
+	Name string
+	ID   string
+}

@@ -4,7 +4,35 @@
 
 package trade
 
-import "github.com/govalues/decimal"
+import (
+	"github.com/2dChan/trade-engine/lib/asset"
+	"github.com/govalues/decimal"
+)
+
+type Order struct {
+	Ticker    string
+	Type      OrderType
+	Direction OrderDirection
+	// Quantity is expressed in discrete steps, not in base units.
+	// Use Instrument.QuantityStep to convert between steps and base asset quantity.
+	Quantity int64
+	Price    decimal.Decimal
+}
+
+type OrderState struct {
+	ID        string
+	Ticker    string
+	Status    OrderStatus
+	Type      OrderType
+	Direction OrderDirection
+	// Quantity is expressed in discrete steps, not in base units.
+	// Use Instrument.QuantityStep to convert between steps and base asset quantity.
+	InitialPositionPrice asset.Amount
+	AveragePositionPrice asset.Amount
+	Commission           asset.Amount
+	QuantityRequested    int64
+	QuantityExecuted     int64
+}
 
 type OrderDirection int
 
@@ -67,22 +95,4 @@ func (o OrderStatus) String() string {
 	default:
 		return "undefined"
 	}
-}
-
-type Order struct {
-	Ticker    string
-	Type      OrderType
-	Direction OrderDirection
-	Quantity  decimal.Decimal
-	Price     decimal.Decimal
-}
-
-type OrderState struct {
-	ID        string
-	Ticker    string
-	Status    OrderStatus
-	Type      OrderType
-	Direction OrderDirection
-	Price     decimal.Decimal
-	Quantity  decimal.Decimal
 }

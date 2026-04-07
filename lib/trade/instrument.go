@@ -4,36 +4,17 @@
 
 package trade
 
-import "github.com/govalues/decimal"
-
-type Account struct {
-	Name string
-	ID   string
-}
+import (
+	"github.com/2dChan/trade-engine/lib/asset"
+	"github.com/govalues/decimal"
+)
 
 type Instrument struct {
-	Name      string
-	Ticker    string
-	ClassCode string
-	Type      InstrumentType
-	Currency  CurrencyCode
-	Lot       decimal.Decimal
-}
-
-type Position struct {
 	Name         string
 	Ticker       string
 	Type         InstrumentType
-	Currency     CurrencyCode
-	AveragePrice decimal.Decimal
-	CurrentPrice decimal.Decimal
-	Quantity     decimal.Decimal
-}
-
-type Portfolio struct {
-	Name      string
-	Currency  CurrencyCode
-	Positions []Position
+	Currency     asset.Code
+	QuantityStep decimal.Decimal
 }
 
 type InstrumentType int
