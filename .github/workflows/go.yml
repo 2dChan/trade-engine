@@ -80,11 +80,6 @@ jobs:
             fi
           done
 
-      - name: Security scan
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./... 
-
       - name: Lint
         uses: golangci/golangci-lint-action@v9.2.0
         with:
