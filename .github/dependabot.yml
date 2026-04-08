@@ -15,13 +15,6 @@ updates:
       prefix: "chore(lib): "
 
   - package-ecosystem: gomod
-    directory: "/adapters/bcs"
-    schedule:
-      interval: "weekly"
-    commit-message:
-      prefix: "chore(adapters/bcs): "
-
-  - package-ecosystem: gomod
     directory: "/bots"
     schedule:
       interval: "weekly"
@@ -34,3 +27,18 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(backend): "
+
+  - package-ecosystem: gomod
+    directory: "/adapters/bcs"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(adapters/bcs): "
+
+  - package-ecosystem: gomod
+    directory: "/adapters/tinvest"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(adapters/tinvest): "
+
