@@ -71,7 +71,7 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 
 func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order) (string, error) {
 	var req pb.PostOrderRequest
-	if err := fillPostOrderRequest(&req, accountID, requestID.String(), order); err != nil {
+	if err := fillPostOrderRequest(&req, accountID, requestID.String(), order, a.allowMarginTrade); err != nil {
 		return "", fmt.Errorf("tinvest: %w", err)
 	}
 	resp, err := a.ordersClient.PostOrder(ctx, &req)
@@ -91,7 +91,7 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 	return nil
 }
 
-func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string, order trade.Order) error {
+func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string, order trade.Order, allowMarginTrade bool) error {
 	dir, err := mapTradeOrderDirection(order.Direction)
 	if err != nil {
 		return fmt.Errorf("tinvest: %w", err)
@@ -108,6 +108,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 	req.Direction = dir
 	req.Quantity = order.Quantity
 	req.PriceType = pb.PriceType_PRICE_TYPE_CURRENCY
+	req.ConfirmMarginTrade = allowMarginTrade
 	req.Price = nil
 	switch ordType {
 	case pb.OrderType_ORDER_TYPE_LIMIT:

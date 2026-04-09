@@ -7,7 +7,8 @@ package tinvest
 import "fmt"
 
 type AdapterOptions struct {
-	endpoint string
+	endpoint         string
+	allowMarginTrade bool
 }
 
 type AdapterOption func(*AdapterOptions) error
@@ -15,6 +16,13 @@ type AdapterOption func(*AdapterOptions) error
 func EnableSandbox() AdapterOption {
 	return func(o *AdapterOptions) error {
 		o.endpoint = sandboxEndpoint
+		return nil
+	}
+}
+
+func EnableMarginTrade() AdapterOption {
+	return func(o *AdapterOptions) error {
+		o.allowMarginTrade = true
 		return nil
 	}
 }

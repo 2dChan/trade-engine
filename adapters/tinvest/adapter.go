@@ -28,13 +28,15 @@ type Adapter struct {
 	instrumentsClient pb.InstrumentsServiceClient
 	operationsClient  pb.OperationsServiceClient
 	ordersClient      pb.OrdersServiceClient
+	allowMarginTrade  bool
 }
 
 var _ broker.Broker = (*Adapter)(nil)
 
 func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
 	opts := AdapterOptions{
-		endpoint: endpoint,
+		endpoint:         endpoint,
+		allowMarginTrade: false,
 	}
 	for _, set := range setters {
 		if err := set(&opts); err != nil {
@@ -60,6 +62,7 @@ func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*A
 		instrumentsClient: pb.NewInstrumentsServiceClient(conn),
 		operationsClient:  pb.NewOperationsServiceClient(conn),
 		ordersClient:      pb.NewOrdersServiceClient(conn),
+		allowMarginTrade:  opts.allowMarginTrade,
 	}
 
 	return a, nil
