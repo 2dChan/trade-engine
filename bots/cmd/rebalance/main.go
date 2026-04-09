@@ -13,6 +13,7 @@ import (
 
 	"github.com/2dChan/trade-engine/adapters/bcs"
 	"github.com/2dChan/trade-engine/bots/internal/botkit"
+	"github.com/2dChan/trade-engine/bots/internal/config"
 	"github.com/2dChan/trade-engine/bots/internal/logging"
 	"github.com/2dChan/trade-engine/bots/internal/strategies/rebalance"
 )
@@ -21,7 +22,11 @@ func run(logger *slog.Logger) error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	token, err := cfg.Token()
+	accountID, err := config.Lookup(".env", "AccountID")
+	if err != nil {
+		return err
+	}
+	token, err := config.Lookup(".env", "TOKEN")
 	if err != nil {
 		return err
 	}
@@ -30,7 +35,7 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	prx, err := botkit.NewProxy(ctx, brk, cfg.AccountID)
+	prx, err := botkit.NewProxy(ctx, brk, accountID)
 	if err != nil {
 		return err
 	}

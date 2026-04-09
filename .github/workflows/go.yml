@@ -69,17 +69,6 @@ jobs:
             exit 1
           fi
 
-      - name: Copy example configs
-        if: matrix.module == 'bots'
-        run: |
-          src="cmd/example/config.example.go"
-          for dir in cmd/*/; do
-            [ "$dir" = "cmd/example/" ] && continue
-            if [ ! -f "$dst" ]; then
-              cp "$src" "${dir}"
-            fi
-          done
-
       - name: Lint
         uses: golangci/golangci-lint-action@v9.2.0
         with:

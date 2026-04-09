@@ -12,22 +12,7 @@ import (
 	"path/filepath"
 )
 
-type Config struct {
-	AccountID string
-	TokenVar  string
-	EnvPath   string
-}
-
-func (c Config) Token() (string, error) {
-	token, err := lookup(c.EnvPath, c.TokenVar)
-	if err != nil {
-		return "", fmt.Errorf("config: token: %w", err)
-	}
-
-	return token, nil
-}
-
-func lookup(path, key string) (string, error) {
+func Lookup(path, key string) (string, error) {
 	cpath := filepath.Clean(path)
 	data, err := os.ReadFile(cpath)
 	if err != nil {

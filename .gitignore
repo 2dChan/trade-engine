@@ -24,8 +24,5 @@ go.work.sum
 # env file
 .env
 
-# Bots config
-bots/cmd/*/config.go
-
 # Adapters
 adapters/*/proto
