@@ -6,21 +6,21 @@ package tinvest
 
 import "fmt"
 
-type ClientOptions struct {
+type AdapterOptions struct {
 	endpoint string
 }
 
-type ClientOption func(*ClientOptions) error
+type AdapterOption func(*AdapterOptions) error
 
-func EnableSandbox() ClientOption {
-	return func(o *ClientOptions) error {
+func EnableSandbox() AdapterOption {
+	return func(o *AdapterOptions) error {
 		o.endpoint = sandboxEndpoint
 		return nil
 	}
 }
 
-func WithEndpoint(endpoint string) ClientOption {
-	return func(o *ClientOptions) error {
+func WithEndpoint(endpoint string) AdapterOption {
+	return func(o *AdapterOptions) error {
 		if endpoint == "" {
 			return fmt.Errorf("tinvest: endpoint not set")
 		}

@@ -12,9 +12,9 @@ import (
 	"github.com/2dChan/trade-engine/lib/trade"
 )
 
-func (c *Client) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
+func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
 	req := pb.GetOrdersRequest{AccountId: accountID}
-	resp, err := c.ordersClient.GetOrders(ctx, &req)
+	resp, err := a.ordersClient.GetOrders(ctx, &req)
 	if err != nil {
 		return nil, fmt.Errorf("tinvest: :%w", err)
 	}
@@ -63,15 +63,15 @@ func (c *Client) Orders(ctx context.Context, accountID string) ([]trade.OrderSta
 	return orders, nil
 }
 
-func (c *Client) OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error) {
+func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error) {
 	return trade.OrderState{}, nil
 }
 
-func (c *Client) PostOrder(ctx context.Context, accountID string, order trade.Order) (string, error) {
+func (a *Adapter) PostOrder(ctx context.Context, accountID string, order trade.Order) (string, error) {
 	return "", nil
 }
 
-func (c *Client) CancelOrder(ctx context.Context, accountID string, orderID string) error {
+func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
 	return nil
 }
 

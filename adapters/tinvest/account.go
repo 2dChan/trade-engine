@@ -12,9 +12,9 @@ import (
 	"github.com/2dChan/trade-engine/lib/trade"
 )
 
-func (c *Client) Accounts(ctx context.Context) ([]trade.Account, error) {
+func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 	req := pb.GetAccountsRequest{}
-	resp, err := c.usersClient.GetAccounts(ctx, &req)
+	resp, err := a.usersClient.GetAccounts(ctx, &req)
 	if err != nil {
 		return nil, fmt.Errorf("tinvest: %w", err)
 	}

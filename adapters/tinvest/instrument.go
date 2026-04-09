@@ -13,9 +13,9 @@ import (
 	"github.com/govalues/decimal"
 )
 
-func (c *Client) InstrumentByTicker(ctx context.Context, key string) (trade.Instrument, error) {
+func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Instrument, error) {
 	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: key}
-	resp, err := c.instrumentsClient.GetInstrumentBy(ctx, &req)
+	resp, err := a.instrumentsClient.GetInstrumentBy(ctx, &req)
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
 	}
@@ -40,10 +40,10 @@ func (c *Client) InstrumentByTicker(ctx context.Context, key string) (trade.Inst
 	return instrument, nil
 }
 
-func (c *Client) InstrumentsByTickers(ctx context.Context, keys []string) ([]trade.Instrument, error) {
+func (a *Adapter) InstrumentsByTickers(ctx context.Context, keys []string) ([]trade.Instrument, error) {
 	instrs := make([]trade.Instrument, 0, len(keys))
 	for _, key := range keys {
-		instr, err := c.InstrumentByTicker(ctx, key)
+		instr, err := a.InstrumentByTicker(ctx, key)
 		if err != nil {
 			return nil, err
 		}

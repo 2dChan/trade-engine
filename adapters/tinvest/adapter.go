@@ -22,7 +22,7 @@ const (
 	sandboxEndpoint = "sandbox-invest-public-api.tbank.ru:443"
 )
 
-type Client struct {
+type Adapter struct {
 	conn              *grpc.ClientConn
 	usersClient       pb.UsersServiceClient
 	instrumentsClient pb.InstrumentsServiceClient
@@ -30,10 +30,10 @@ type Client struct {
 	ordersClient      pb.OrdersServiceClient
 }
 
-var _ broker.Broker = (*Client)(nil)
+var _ broker.Broker = (*Adapter)(nil)
 
-func NewClient(ctx context.Context, token string, setters ...ClientOption) (*Client, error) {
-	opts := ClientOptions{
+func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
+	opts := AdapterOptions{
 		endpoint: endpoint,
 	}
 	for _, set := range setters {
@@ -54,7 +54,7 @@ func NewClient(ctx context.Context, token string, setters ...ClientOption) (*Cli
 		return nil, fmt.Errorf("tinvest: %w", err)
 	}
 
-	c := &Client{
+	a := &Adapter{
 		conn:              conn,
 		usersClient:       pb.NewUsersServiceClient(conn),
 		instrumentsClient: pb.NewInstrumentsServiceClient(conn),
@@ -62,16 +62,16 @@ func NewClient(ctx context.Context, token string, setters ...ClientOption) (*Cli
 		ordersClient:      pb.NewOrdersServiceClient(conn),
 	}
 
-	return c, nil
+	return a, nil
 }
 
-func (c *Client) Name() string {
+func (a *Adapter) Name() string {
 	return name
 }
 
-func (c *Client) Close() error {
-	if c.conn != nil {
-		return c.conn.Close()
+func (a *Adapter) Close() error {
+	if a.conn != nil {
+		return a.conn.Close()
 	}
 	return nil
 }

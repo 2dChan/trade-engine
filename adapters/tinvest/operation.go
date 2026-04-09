@@ -12,9 +12,9 @@ import (
 	"github.com/2dChan/trade-engine/lib/trade"
 )
 
-func (c *Client) Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error) {
+func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error) {
 	req := pb.PortfolioRequest{AccountId: accountID}
-	resp, err := c.operationsClient.GetPortfolio(ctx, &req)
+	resp, err := a.operationsClient.GetPortfolio(ctx, &req)
 	if err != nil {
 		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: get portfolio: %w", err)
 	}
