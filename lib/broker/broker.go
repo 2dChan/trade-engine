@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/google/uuid"
 )
 
 type Broker interface {
@@ -16,7 +17,7 @@ type Broker interface {
 	Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error)
 	Orders(ctx context.Context, accountID string) ([]trade.OrderState, error)
 	OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error)
-	PostOrder(ctx context.Context, accountID string, order trade.Order) (string, error)
+	PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order) (string, error)
 	CancelOrder(ctx context.Context, accountID string, orderID string) error
 	InstrumentByTicker(ctx context.Context, ticker string) (trade.Instrument, error)
 	InstrumentsByTickers(ctx context.Context, tickers []string) ([]trade.Instrument, error)
