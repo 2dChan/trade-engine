@@ -9,7 +9,9 @@ import (
 	"fmt"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/google/uuid"
 )
 
 func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
@@ -67,11 +69,64 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 	return trade.OrderState{}, nil
 }
 
-func (a *Adapter) PostOrder(ctx context.Context, accountID string, order trade.Order) (string, error) {
-	return "", nil
+func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order) (string, error) {
+	var req pb.PostOrderRequest
+	if err := fillPostOrderRequest(&req, accountID, requestID.String(), order); err != nil {
+		return "", fmt.Errorf("tinvest: %w", err)
+	}
+	resp, err := a.ordersClient.PostOrder(ctx, &req)
+	if err != nil {
+		return "", fmt.Errorf("tinvest: post order: %w", err)
+	}
+
+	orderID := resp.GetOrderId()
+	if orderID == "" {
+		return "", fmt.Errorf("tinvest: post order: empty order id: %w", broker.ErrUnexpectedResponse)
+	}
+
+	return orderID, nil
 }
 
 func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
+	return nil
+}
+
+func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string, order trade.Order) error {
+	dir, err := mapTradeOrderDirection(order.Direction)
+	if err != nil {
+		return fmt.Errorf("tinvest: %w", err)
+	}
+	ordType, err := mapTradeOrderType(order.Type)
+	if err != nil {
+		return fmt.Errorf("tinvest: %w", err)
+	}
+
+	req.OrderId = requestID
+	req.AccountId = accountID
+	req.InstrumentId = order.Ticker
+	req.OrderType = ordType
+	req.Direction = dir
+	req.Quantity = order.Quantity
+	req.PriceType = pb.PriceType_PRICE_TYPE_CURRENCY
+	req.Price = nil
+	switch ordType {
+	case pb.OrderType_ORDER_TYPE_LIMIT:
+		if !order.Price.IsPos() {
+			return fmt.Errorf("post order: limit order price must be > 0: %w", broker.ErrInvalidRequest)
+		}
+		price, err := decimalToQuotation(order.Price)
+		if err != nil {
+			return err
+		}
+		req.Price = price
+	case pb.OrderType_ORDER_TYPE_MARKET, pb.OrderType_ORDER_TYPE_BESTPRICE:
+		if !order.Price.IsZero() {
+			return fmt.Errorf("post order: market-like order price must be 0: %w", broker.ErrInvalidRequest)
+		}
+	default:
+		return fmt.Errorf("post order: unsupported order type for price handling %v: %w", ordType, broker.ErrInvalidRequest)
+	}
+
 	return nil
 }
 
@@ -102,6 +157,18 @@ func mapOrderDirection(d pb.OrderDirection) (trade.OrderDirection, error) {
 	}
 }
 
+func mapTradeOrderDirection(d trade.OrderDirection) (pb.OrderDirection, error) {
+	switch d {
+	case trade.Buy:
+		return pb.OrderDirection_ORDER_DIRECTION_BUY, nil
+	case trade.Sell:
+		return pb.OrderDirection_ORDER_DIRECTION_SELL, nil
+	default:
+		return pb.OrderDirection_ORDER_DIRECTION_UNSPECIFIED,
+			fmt.Errorf("tinvest: convert trade order direction: unsupported order direction %v", d)
+	}
+}
+
 func mapOrderType(t pb.OrderType) (trade.OrderType, error) {
 	switch t {
 	case pb.OrderType_ORDER_TYPE_LIMIT:
@@ -110,5 +177,17 @@ func mapOrderType(t pb.OrderType) (trade.OrderType, error) {
 		return trade.Market, nil
 	default:
 		return trade.Market, fmt.Errorf("tinvest: convert order type: unsupported order type %v", t)
+	}
+}
+
+func mapTradeOrderType(t trade.OrderType) (pb.OrderType, error) {
+	switch t {
+	case trade.Limit:
+		return pb.OrderType_ORDER_TYPE_LIMIT, nil
+	case trade.Market:
+		return pb.OrderType_ORDER_TYPE_MARKET, nil
+	default:
+		return pb.OrderType_ORDER_TYPE_UNSPECIFIED,
+			fmt.Errorf("tinvest: convert trade order type: unsupported order type %v", t)
 	}
 }

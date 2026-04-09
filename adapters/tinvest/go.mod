@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/2dChan/trade-engine/lib v0.2.0
+	github.com/google/uuid v1.6.0
 	github.com/govalues/decimal v0.1.36
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260406210006-6f92a3bedf2d

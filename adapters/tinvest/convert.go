@@ -86,3 +86,15 @@ func quotationToDecimal(v *pb.Quotation) (decimal.Decimal, error) {
 
 	return value, nil
 }
+
+func decimalToQuotation(v decimal.Decimal) (*pb.Quotation, error) {
+	units, nano, ok := v.Int64(nanoScaleDigits)
+	if !ok {
+		return nil, fmt.Errorf("decimal to quotation: cannot represent %q as quotation", v)
+	}
+
+	return &pb.Quotation{
+		Units: units,
+		Nano:  int32(nano),
+	}, nil
+}
