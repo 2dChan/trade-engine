@@ -97,14 +97,12 @@ func (s Strategy) Run(ctx context.Context, logger *slog.Logger, proxy botkit.Pro
 		return fmt.Errorf("rebalance: %w", err)
 	}
 	for ticker, frac := range s.cfg.Allocation {
+		// TODO: Set currPrice for active not in portfolio(now skip).
 		quantity := decimal.Zero
 		currPrice := decimal.Zero
 		if pos, ok := positionsByTickers[ticker]; ok {
 			currPrice = pos.CurrentPrice
 			quantity = pos.Quantity
-		} else {
-			// TODO: Set currPrice for active not in portfolio(now skip).
-			continue
 		}
 
 		currVal, err := currPrice.Mul(quantity)
