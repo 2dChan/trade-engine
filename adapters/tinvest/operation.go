@@ -49,7 +49,7 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	}
 
 	portfolio := trade.Portfolio{
-		AccountID:   resp.AccountId,
+		AccountID:   resp.GetAccountId(),
 		TotalAmount: total,
 		Positions:   pos,
 	}
