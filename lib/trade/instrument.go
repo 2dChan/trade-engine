@@ -14,6 +14,7 @@ type Instrument struct {
 	Ticker       string
 	Type         InstrumentType
 	Currency     asset.Code
+	PriceStep    decimal.Decimal
 	QuantityStep decimal.Decimal
 }
 
