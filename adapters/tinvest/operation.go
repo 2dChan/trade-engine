@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
 )
 
@@ -17,6 +18,9 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	resp, err := a.operationsClient.GetPortfolio(ctx, &req)
 	if err != nil {
 		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: get portfolio: %w", err)
+	}
+	if resp == nil {
+		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: empty response: %w", broker.ErrUnexpectedResponse)
 	}
 
 	pos := make([]trade.Position, 0, len(resp.GetPositions()))

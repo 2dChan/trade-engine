@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
 )
 
@@ -17,6 +18,9 @@ func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 	resp, err := a.usersClient.GetAccounts(ctx, &req)
 	if err != nil {
 		return nil, fmt.Errorf("tinvest: %w", err)
+	}
+	if resp == nil {
+		return nil, fmt.Errorf("tinvest: accounts: empty response: %w", broker.ErrUnexpectedResponse)
 	}
 
 	accounts := make([]trade.Account, 0, len(resp.GetAccounts()))

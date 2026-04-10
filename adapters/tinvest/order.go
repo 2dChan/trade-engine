@@ -25,6 +25,9 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 	if err != nil {
 		return nil, fmt.Errorf("tinvest: orders: get orders: %w", err)
 	}
+	if resp == nil {
+		return nil, fmt.Errorf("tinvest: orders: empty response: %w", broker.ErrUnexpectedResponse)
+	}
 
 	orders := make([]trade.OrderState, 0, len(resp.GetOrders()))
 	for _, o := range resp.GetOrders() {
@@ -70,6 +73,9 @@ func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uui
 	resp, err := a.ordersClient.PostOrder(ctx, &req)
 	if err != nil {
 		return "", fmt.Errorf("tinvest: post order: %w", err)
+	}
+	if resp == nil {
+		return "", fmt.Errorf("tinvest: post order: empty response: %w", broker.ErrUnexpectedResponse)
 	}
 
 	switch orderRequestIDType {

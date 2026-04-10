@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
 	"github.com/govalues/decimal"
 )
@@ -19,10 +20,13 @@ func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Ins
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
 	}
+	if resp == nil {
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response: %w", broker.ErrUnexpectedResponse)
+	}
 
 	i := resp.GetInstrument()
 	if i == nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response")
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response: %w", broker.ErrUnexpectedResponse)
 	}
 
 	step, err := decimal.NewFromInt64(int64(i.GetLot()), 0, 0)
