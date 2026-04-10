@@ -14,50 +14,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	orderRequestPriceType = pb.PriceType_PRICE_TYPE_CURRENCY
+	orderRequestIDType    = pb.OrderIdType_ORDER_ID_TYPE_EXCHANGE
+)
+
 func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderState, error) {
 	req := pb.GetOrdersRequest{AccountId: accountID}
 	resp, err := a.ordersClient.GetOrders(ctx, &req)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: :%w", err)
+		return nil, fmt.Errorf("tinvest: orders: get orders: %w", err)
 	}
+
 	orders := make([]trade.OrderState, 0, len(resp.GetOrders()))
 	for _, o := range resp.GetOrders() {
-		status, err := mapOrderStatus(o.GetExecutionReportStatus())
+		order, err := convertOrderState(o)
 		if err != nil {
-			return nil, fmt.Errorf("tinvest: %w", err)
-		}
-		dir, err := mapOrderDirection(o.GetDirection())
-		if err != nil {
-			return nil, fmt.Errorf("tinvest: %w", err)
-		}
-		ordType, err := mapOrderType(o.GetOrderType())
-		if err != nil {
-			return nil, fmt.Errorf("tinvest :%w", err)
-		}
-		initPrice, err := moneyValueToAmount(o.GetInitialSecurityPrice())
-		if err != nil {
-			return nil, fmt.Errorf("tinvest: %w", err)
-		}
-		avg, err := moneyValueToAmount(o.GetAveragePositionPrice())
-		if err != nil {
-			return nil, fmt.Errorf("tinvest: %w", err)
-		}
-		commision, err := moneyValueToAmount(o.GetExecutedCommission())
-		if err != nil {
-			return nil, fmt.Errorf("tinvest: %w", err)
-		}
-
-		order := trade.OrderState{
-			ID:                   o.GetOrderId(),
-			Ticker:               newTicker(o.GetTicker(), o.GetClassCode()),
-			Status:               status,
-			Direction:            dir,
-			Type:                 ordType,
-			InitialPositionPrice: initPrice,
-			AveragePositionPrice: avg,
-			Commission:           commision,
-			QuantityRequested:    o.GetLotsRequested(),
-			QuantityExecuted:     o.GetLotsExecuted(),
+			return nil, fmt.Errorf("tinvest: orders: convert order state: %w", err)
 		}
 		orders = append(orders, order)
 	}
@@ -66,7 +39,27 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 }
 
 func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error) {
-	return trade.OrderState{}, nil
+	req := pb.GetOrderStateRequest{
+		AccountId:   accountID,
+		OrderId:     orderID,
+		PriceType:   orderRequestPriceType,
+		OrderIdType: orderRequestIDType.Enum(),
+	}
+
+	resp, err := a.ordersClient.GetOrderState(ctx, &req)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("tinvest: order state: get order state: %w", err)
+	}
+	if resp == nil {
+		return trade.OrderState{}, fmt.Errorf("tinvest: order state: empty response: %w", broker.ErrUnexpectedResponse)
+	}
+
+	state, err := convertOrderState(resp)
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("tinvest: order state: convert order state: %w", err)
+	}
+
+	return state, nil
 }
 
 func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order) (string, error) {
@@ -79,12 +72,18 @@ func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uui
 		return "", fmt.Errorf("tinvest: post order: %w", err)
 	}
 
-	orderID := resp.GetOrderId()
-	if orderID == "" {
-		return "", fmt.Errorf("tinvest: post order: empty order id: %w", broker.ErrUnexpectedResponse)
+	switch orderRequestIDType {
+	case pb.OrderIdType_ORDER_ID_TYPE_REQUEST:
+		return requestID.String(), nil
+	case pb.OrderIdType_ORDER_ID_TYPE_EXCHANGE:
+		orderID := resp.GetOrderId()
+		if orderID == "" {
+			return "", fmt.Errorf("tinvest: post order: empty order id: %w", broker.ErrUnexpectedResponse)
+		}
+		return orderID, nil
+	default:
+		return "", fmt.Errorf("tinvest: post order: unsupported order id type %v: %w", orderRequestIDType, broker.ErrInvalidRequest)
 	}
-
-	return orderID, nil
 }
 
 func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
@@ -107,7 +106,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 	req.OrderType = ordType
 	req.Direction = dir
 	req.Quantity = order.Quantity
-	req.PriceType = pb.PriceType_PRICE_TYPE_CURRENCY
+	req.PriceType = orderRequestPriceType
 	req.ConfirmMarginTrade = allowMarginTrade
 	req.Price = nil
 	switch ordType {
@@ -129,6 +128,52 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 	}
 
 	return nil
+}
+
+func convertOrderState(o *pb.OrderState) (trade.OrderState, error) {
+	if o == nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: nil order state")
+	}
+
+	status, err := mapOrderStatus(o.GetExecutionReportStatus())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: status: %w", err)
+	}
+	dir, err := mapOrderDirection(o.GetDirection())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: direction: %w", err)
+	}
+	ordType, err := mapOrderType(o.GetOrderType())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: order type: %w", err)
+	}
+	initPrice, err := moneyValueToAmount(o.GetInitialSecurityPrice())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: initial security price: %w", err)
+	}
+	avg, err := moneyValueToAmount(o.GetAveragePositionPrice())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: average position price: %w", err)
+	}
+	commission, err := moneyValueToAmount(o.GetExecutedCommission())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("convert order state: executed commission: %w", err)
+	}
+
+	state := trade.OrderState{
+		ID:                   o.GetOrderId(),
+		Ticker:               newTicker(o.GetTicker(), o.GetClassCode()),
+		Status:               status,
+		Direction:            dir,
+		Type:                 ordType,
+		InitialPositionPrice: initPrice,
+		AveragePositionPrice: avg,
+		Commission:           commission,
+		QuantityRequested:    o.GetLotsRequested(),
+		QuantityExecuted:     o.GetLotsExecuted(),
+	}
+
+	return state, nil
 }
 
 func mapOrderStatus(s pb.OrderExecutionReportStatus) (trade.OrderStatus, error) {
