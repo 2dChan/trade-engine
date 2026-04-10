@@ -93,6 +93,20 @@ func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uui
 }
 
 func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID string) error {
+	req := pb.CancelOrderRequest{
+		AccountId:   accountID,
+		OrderId:     orderID,
+		OrderIdType: orderRequestIDType.Enum(),
+	}
+
+	resp, err := a.ordersClient.CancelOrder(ctx, &req)
+	if err != nil {
+		return fmt.Errorf("tinvest: cancel order: %w", err)
+	}
+	if resp == nil {
+		return fmt.Errorf("tinvest: cancel order: empty response: %w", broker.ErrUnexpectedResponse)
+	}
+
 	return nil
 }
 
