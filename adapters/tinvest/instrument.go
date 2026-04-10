@@ -29,16 +29,22 @@ func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Ins
 		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response: %w", broker.ErrUnexpectedResponse)
 	}
 
-	step, err := decimal.NewFromInt64(int64(i.GetLot()), 0, 0)
+	priceStep, err := quotationToDecimal(i.GetMinPriceIncrement())
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
 	}
+	quantityStep, err := decimal.NewFromInt64(int64(i.GetLot()), 0, 0)
+	if err != nil {
+		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
+	}
+
 	instrument := trade.Instrument{
 		Name:         i.GetName(),
 		Ticker:       newTicker(i.GetTicker(), i.GetClassCode()),
 		Type:         mapInstrumentType(i.GetInstrumentKind()),
 		Currency:     mapCurrencyCode(i.GetCurrency()),
-		QuantityStep: step,
+		PriceStep:    priceStep,
+		QuantityStep: quantityStep,
 	}
 
 	return instrument, nil
