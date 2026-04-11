@@ -65,9 +65,15 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 	return state, nil
 }
 
-func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order) (string, error) {
+func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order, setters ...broker.PostOrderOption) (string, error) {
+	opts, err := broker.NewPostOrderOptions(setters...)
+	if err != nil {
+		return "", fmt.Errorf("tinvest: %w", err)
+	}
+
 	var req pb.PostOrderRequest
-	if err := fillPostOrderRequest(&req, accountID, requestID.String(), order, a.allowMarginTrade); err != nil {
+	err = fillPostOrderRequest(&req, accountID, requestID.String(), order, opts.AllowMarginTrade)
+	if err != nil {
 		return "", fmt.Errorf("tinvest: %w", err)
 	}
 	resp, err := a.ordersClient.PostOrder(ctx, &req)
