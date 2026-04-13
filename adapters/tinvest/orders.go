@@ -128,7 +128,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 
 	req.OrderId = requestID
 	req.AccountId = accountID
-	req.InstrumentId = order.Ticker
+	req.InstrumentId = order.InstrumentID.String()
 	req.OrderType = ordType
 	req.Direction = dir
 	req.Quantity = order.Quantity
@@ -161,6 +161,10 @@ func convertOrderState(o *pb.OrderState) (trade.OrderState, error) {
 		return trade.OrderState{}, fmt.Errorf("convert order state: nil order state")
 	}
 
+	instrumentID, err := trade.NewInstrumentID(o.GetTicker(), o.GetClassCode())
+	if err != nil {
+		return trade.OrderState{}, fmt.Errorf("tinvest: %w", err)
+	}
 	status, err := mapOrderStatus(o.GetExecutionReportStatus())
 	if err != nil {
 		return trade.OrderState{}, fmt.Errorf("convert order state: status: %w", err)
@@ -188,7 +192,7 @@ func convertOrderState(o *pb.OrderState) (trade.OrderState, error) {
 
 	state := trade.OrderState{
 		ID:                   o.GetOrderId(),
-		Ticker:               newTicker(o.GetTicker(), o.GetClassCode()),
+		InstrumentID:         instrumentID,
 		Status:               status,
 		Direction:            dir,
 		Type:                 ordType,

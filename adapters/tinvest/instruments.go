@@ -14,8 +14,8 @@ import (
 	"github.com/govalues/decimal"
 )
 
-func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Instrument, error) {
-	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: key}
+func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error) {
+	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: id.String()}
 	resp, err := a.instrumentsClient.GetInstrumentBy(ctx, &req)
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
@@ -29,6 +29,10 @@ func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Ins
 		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response: %w", broker.ErrUnexpectedResponse)
 	}
 
+	instrumentID, err := trade.NewInstrumentID(i.GetTicker(), i.GetClassCode())
+	if err != nil {
+		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
+	}
 	priceStep, err := quotationToDecimal(i.GetMinPriceIncrement())
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
@@ -40,7 +44,7 @@ func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Ins
 
 	instrument := trade.Instrument{
 		Name:         i.GetName(),
-		Ticker:       newTicker(i.GetTicker(), i.GetClassCode()),
+		InstrumentID: instrumentID,
 		Type:         mapInstrumentType(i.GetInstrumentKind()),
 		Currency:     mapCurrencyCode(i.GetCurrency()),
 		PriceStep:    priceStep,
@@ -50,10 +54,10 @@ func (a *Adapter) InstrumentByTicker(ctx context.Context, key string) (trade.Ins
 	return instrument, nil
 }
 
-func (a *Adapter) InstrumentsByTickers(ctx context.Context, keys []string) ([]trade.Instrument, error) {
-	instrs := make([]trade.Instrument, 0, len(keys))
-	for _, key := range keys {
-		instr, err := a.InstrumentByTicker(ctx, key)
+func (a *Adapter) InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error) {
+	instrs := make([]trade.Instrument, 0, len(ids))
+	for _, id := range ids {
+		instr, err := a.InstrumentByID(ctx, id)
 		if err != nil {
 			return nil, err
 		}
