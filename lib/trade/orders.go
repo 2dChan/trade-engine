@@ -10,9 +10,9 @@ import (
 )
 
 type Order struct {
-	Ticker    string
-	Type      OrderType
-	Direction OrderDirection
+	InstrumentID InstrumentID
+	Type         OrderType
+	Direction    OrderDirection
 	// Quantity is expressed in discrete steps, not in base units.
 	// Use Instrument.QuantityStep to convert between steps and base asset quantity.
 	Quantity int64
@@ -20,11 +20,11 @@ type Order struct {
 }
 
 type OrderState struct {
-	ID        string
-	Ticker    string
-	Status    OrderStatus
-	Type      OrderType
-	Direction OrderDirection
+	ID           string
+	InstrumentID InstrumentID
+	Status       OrderStatus
+	Type         OrderType
+	Direction    OrderDirection
 	// Quantity is expressed in discrete steps, not in base units.
 	// Use Instrument.QuantityStep to convert between steps and base asset quantity.
 	InitialPositionPrice asset.Amount

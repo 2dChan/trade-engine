@@ -86,7 +86,7 @@ func validateInstrumentIDPart(part string) error {
 	}
 
 	for i, b := range part {
-		if !((b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')) {
+		if (b < 'A' || b > 'Z') && (b < '0' || b > '9') {
 			return fmt.Errorf("must contain only [A-Z0-9] at byte %d", i)
 		}
 	}

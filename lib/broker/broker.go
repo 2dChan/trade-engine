@@ -19,7 +19,7 @@ type Broker interface {
 	OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error)
 	PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order, opts ...PostOrderOption) (string, error)
 	CancelOrder(ctx context.Context, accountID string, orderID string) error
-	InstrumentByTicker(ctx context.Context, ticker string) (trade.Instrument, error)
-	InstrumentsByTickers(ctx context.Context, tickers []string) ([]trade.Instrument, error)
+	InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error)
+	InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error)
 	Close() error
 }

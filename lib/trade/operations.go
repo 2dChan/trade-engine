@@ -10,7 +10,7 @@ import (
 )
 
 type Position struct {
-	Ticker       string
+	InstrumentID InstrumentID
 	Type         InstrumentType
 	AveragePrice asset.Amount
 	CurrentPrice asset.Amount

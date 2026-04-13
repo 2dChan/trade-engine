@@ -11,7 +11,7 @@ import (
 
 type Instrument struct {
 	Name         string
-	Ticker       string
+	InstrumentID InstrumentID
 	Type         InstrumentType
 	Currency     asset.Code
 	PriceStep    decimal.Decimal
