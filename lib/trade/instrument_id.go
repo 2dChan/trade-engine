@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	instrumentIDSeparator = "_"
+	sep = "_"
 )
 
 type InstrumentID string
@@ -22,16 +22,16 @@ func NewInstrumentID(ticker string, classCode string) (InstrumentID, error) {
 	if err := validateInstrumentIDPart(classCode); err != nil {
 		return "", fmt.Errorf("instrument id: class code: %w", err)
 	}
-	return InstrumentID(ticker + instrumentIDSeparator + classCode), nil
+	return InstrumentID(ticker + sep + classCode), nil
 }
 
 func ParseInstrumentID(raw string) (InstrumentID, error) {
 	if raw == "" {
 		return "", fmt.Errorf("instrument id: empty value")
 	}
-	ticker, classCode, ok := strings.Cut(raw, instrumentIDSeparator)
+	ticker, classCode, ok := strings.Cut(raw, sep)
 	if !ok {
-		return "", fmt.Errorf("instrument id: invalid format %q, expected TICKER_CLASSCODE", raw)
+		return "", fmt.Errorf("instrument id: invalid format %q, expected TICKER%sCLASSCODE", raw, sep)
 	}
 	if err := validateInstrumentIDPart(ticker); err != nil {
 		return "", fmt.Errorf("instrument id: ticker: %w", err)
@@ -67,7 +67,7 @@ func (id InstrumentID) Split() (ticker string, classCode string, ok bool) {
 	if raw == "" {
 		return "", "", false
 	}
-	ticker, classCode, ok = strings.Cut(raw, instrumentIDSeparator)
+	ticker, classCode, ok = strings.Cut(raw, sep)
 	if !ok {
 		return "", "", false
 	}
