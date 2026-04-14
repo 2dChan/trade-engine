@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	nanoScale       int64 = 1_000_000_000
+	nanoScale       int32 = 1_000_000_000
 	nanoScaleDigits int   = 9
 	sep                   = "_"
 )
@@ -25,30 +25,13 @@ func moneyValueToAmount(v *pb.MoneyValue) (asset.Amount, error) {
 		return asset.Amount{}, fmt.Errorf("money value to amount: nil money value")
 	}
 
-	units := v.GetUnits()
-	nano := int64(v.GetNano())
-
-	// protobuf money contract: nano must be in (-1e9, 1e9).
-	if nano <= -nanoScale || nano >= nanoScale {
-		return asset.Amount{}, fmt.Errorf("money value to amount: nano out of range: %d", nano)
-	}
-
-	switch {
-	case units > 0 && nano < 0:
-		units--
-		nano += nanoScale
-	case units < 0 && nano > 0:
-		units++
-		nano -= nanoScale
-	}
-
-	value, err := decimal.NewFromInt64(units, nano, nanoScaleDigits)
+	val, err := decimalFromUnitsNano(v.GetUnits(), v.GetNano())
 	if err != nil {
-		return asset.Amount{}, fmt.Errorf("money value to amount: decimal from int64: %w", err)
+		return asset.Amount{}, fmt.Errorf("money value to amount: %w", err)
 	}
 	code := mapCurrencyCode(v.GetCurrency())
 
-	return asset.NewAmount(value, code), nil
+	return asset.NewAmount(val, code), nil
 }
 
 func mapCurrencyCode(raw string) asset.Code {
@@ -64,29 +47,12 @@ func quotationToDecimal(v *pb.Quotation) (decimal.Decimal, error) {
 		return decimal.Decimal{}, fmt.Errorf("quotation to decimal: nil quotation")
 	}
 
-	units := v.GetUnits()
-	nano := int64(v.GetNano())
-
-	// protobuf quotation contract: nano must be in (-1e9, 1e9).
-	if nano <= -nanoScale || nano >= nanoScale {
-		return decimal.Decimal{}, fmt.Errorf("quotation to decimal: nano out of range: %d", nano)
-	}
-
-	switch {
-	case units > 0 && nano < 0:
-		units--
-		nano += nanoScale
-	case units < 0 && nano > 0:
-		units++
-		nano -= nanoScale
-	}
-
-	value, err := decimal.NewFromInt64(units, nano, nanoScaleDigits)
+	val, err := decimalFromUnitsNano(v.GetUnits(), v.GetNano())
 	if err != nil {
-		return decimal.Decimal{}, fmt.Errorf("quotation to decimal: decimal from int64: %w", err)
+		return decimal.Decimal{}, fmt.Errorf("quotation to decimal: %w", err)
 	}
 
-	return value, nil
+	return val, nil
 }
 
 func decimalToQuotation(v decimal.Decimal) (*pb.Quotation, error) {
@@ -99,6 +65,28 @@ func decimalToQuotation(v decimal.Decimal) (*pb.Quotation, error) {
 		Units: units,
 		Nano:  int32(nano),
 	}, nil
+}
+
+func decimalFromUnitsNano(units int64, nano int32) (decimal.Decimal, error) {
+	if nano <= -nanoScale || nano >= nanoScale {
+		return decimal.Decimal{}, fmt.Errorf("nano out of range: %d", nano)
+	}
+
+	switch {
+	case units > 0 && nano < 0:
+		units--
+		nano += nanoScale
+	case units < 0 && nano > 0:
+		units++
+		nano -= nanoScale
+	}
+
+	val, err := decimal.NewFromInt64(units, int64(nano), nanoScaleDigits)
+	if err != nil {
+		return decimal.Decimal{}, fmt.Errorf("decimal from int64: %w", err)
+	}
+
+	return val, nil
 }
 
 func mapTradeInstrumentID(i trade.InstrumentID) (string, bool) {
