@@ -10,12 +10,14 @@ import (
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
 	"github.com/2dChan/trade-engine/lib/asset"
+	"github.com/2dChan/trade-engine/lib/trade"
 	"github.com/govalues/decimal"
 )
 
 const (
 	nanoScale       int64 = 1_000_000_000
 	nanoScaleDigits int   = 9
+	sep                   = "_"
 )
 
 func moneyValueToAmount(v *pb.MoneyValue) (asset.Amount, error) {
@@ -97,4 +99,12 @@ func decimalToQuotation(v decimal.Decimal) (*pb.Quotation, error) {
 		Units: units,
 		Nano:  int32(nano),
 	}, nil
+}
+
+func mapTradeInstrumentID(i trade.InstrumentID) (string, bool) {
+	ticker, classCode, ok := i.Split()
+	if !ok {
+		return "", false
+	}
+	return ticker + sep + classCode, true
 }

@@ -117,6 +117,10 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 }
 
 func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string, order trade.Order, allowMarginTrade bool) error {
+	id, ok := mapTradeInstrumentID(order.InstrumentID)
+	if ok == false {
+		return fmt.Errorf("tinvest: invalid order instrument id %q: %w", order.InstrumentID, broker.ErrInvalidRequest)
+	}
 	dir, err := mapTradeOrderDirection(order.Direction)
 	if err != nil {
 		return fmt.Errorf("tinvest: %w", err)
@@ -128,7 +132,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 
 	req.OrderId = requestID
 	req.AccountId = accountID
-	req.InstrumentId = order.InstrumentID.String()
+	req.InstrumentId = id
 	req.OrderType = ordType
 	req.Direction = dir
 	req.Quantity = order.Quantity

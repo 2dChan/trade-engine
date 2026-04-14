@@ -15,7 +15,11 @@ import (
 )
 
 func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error) {
-	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: id.String()}
+	mID, ok := mapTradeInstrumentID(id)
+	if ok == false {
+		return trade.Instrument{}, fmt.Errorf("tinvest: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
+	}
+	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: mID}
 	resp, err := a.instrumentsClient.GetInstrumentBy(ctx, &req)
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
