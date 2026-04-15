@@ -35,3 +35,10 @@ var (
 	// ErrUnsupported means operation is not implemented by this adapter.
 	ErrUnsupported = errors.New("unsupported")
 )
+
+// IsRetryable reports whether err is a transient failure that can be retried.
+func IsRetryable(err error) bool {
+	return errors.Is(err, ErrTimeout) ||
+		errors.Is(err, ErrRateLimited) ||
+		errors.Is(err, ErrUnavailable)
+}
