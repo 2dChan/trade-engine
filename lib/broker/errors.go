@@ -3,46 +3,35 @@
 // See the LICENSE file in the project root for the full license text.
 
 // Package broker defines the Broker interface and sentinel errors returned by
-// its implementations. Use [errors.Is] to distinguish error categories.
+// its implementations. Use [errors.Is] to distinguish reaction categories.
 package broker
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
-	// Access errors — valid request, caller lacks credentials or permissions.
+	// Access errors - caller must refresh credentials or permissions.
 
-	// ErrUnauthorized — authentication required or credentials invalid (HTTP 401).
+	// ErrUnauthorized means authentication is required or credentials are invalid.
 	ErrUnauthorized = errors.New("unauthorized")
-	// ErrForbidden — authenticated user lacks permission (HTTP 403).
-	ErrForbidden = errors.New("forbidden")
 
-	// Logical errors — request or resource state is the problem; fix before retrying.
+	// Request errors - request data is invalid and should be fixed before retrying.
 
-	// ErrInvalidRequest — malformed request or invalid parameters (HTTP 400, 415).
+	// ErrInvalidRequest means malformed request or invalid parameters.
 	ErrInvalidRequest = errors.New("invalid request")
-	// ErrInvalidAccountID — invalid or missing account identifier provided.
-	ErrInvalidAccountID = fmt.Errorf("invalid account id: %w", ErrInvalidRequest)
-	// ErrNotFound — requested resource does not exist (HTTP 404).
-	ErrNotFound = errors.New("not found")
-	// ErrConflict — operation conflicts with current resource state (HTTP 409).
-	ErrConflict = errors.New("conflict")
 
-	// Infrastructure errors — transient broker-side failures; retry with back-off.
+	// Infrastructure errors - transient broker-side failures; retry with backoff.
 
-	// ErrTimeout — broker did not respond in time (HTTP 408, 504).
+	// ErrTimeout means broker did not respond in time.
 	ErrTimeout = errors.New("timeout")
-	// ErrRateLimited — request rejected due to rate limiting (HTTP 429).
+	// ErrRateLimited means request rejected due to rate limiting.
 	ErrRateLimited = errors.New("rate limited")
-	// ErrUnavailable — broker service temporarily unavailable (HTTP 5xx).
+	// ErrUnavailable means broker service is temporarily unavailable.
 	ErrUnavailable = errors.New("unavailable")
 
-	// Implementation errors — adapter limitation; retrying will not help.
+	// Capability errors - adapter limitation; retrying will not help.
 
-	// ErrNotSupported — operation not implemented by this adapter.
-	ErrNotSupported = errors.New("not supported")
-	// ErrUnexpectedResponse — broker returned a response the adapter cannot interpret.
-	ErrUnexpectedResponse = errors.New("unexpected response")
+	// ErrUnsupported means operation is not implemented by this adapter.
+	ErrUnsupported = errors.New("unsupported")
 )
