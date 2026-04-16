@@ -16,7 +16,7 @@ import (
 
 func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error) {
 	mID, ok := mapTradeInstrumentID(id)
-	if ok == false {
+	if !ok {
 		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
 	}
 	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: mID}
