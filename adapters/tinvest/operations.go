@@ -29,7 +29,6 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 		if err != nil {
 			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: %w", err)
 		}
-
 		average, err := moneyValueToAmount(p.GetAveragePositionPrice())
 		if err != nil {
 			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position average price: %w", err)
