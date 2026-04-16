@@ -27,7 +27,7 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	for _, p := range resp.GetPositions() {
 		instrumentID, err := trade.NewInstrumentID(p.GetTicker(), p.GetClassCode())
 		if err != nil {
-			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: %w", err)
+			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position instrument id: %w", err)
 		}
 		average, err := moneyValueToAmount(p.GetAveragePositionPrice())
 		if err != nil {
