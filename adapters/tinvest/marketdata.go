@@ -1,0 +1,60 @@
+// Copyright (C) 2026 Andrey Kriulin
+// Licensed under the GNU Affero General Public License v3.0 or later.
+// See the LICENSE file in the project root for the full license text.
+
+package tinvest
+
+import (
+	"context"
+	"fmt"
+
+	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	"github.com/2dChan/trade-engine/lib/broker"
+	"github.com/2dChan/trade-engine/lib/trade"
+)
+
+func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]trade.LastPrice, error) {
+	mIDs := make([]string, 0, len(ids))
+	for _, id := range ids {
+		mID, ok := mapTradeInstrumentID(id)
+		if !ok {
+			return nil, fmt.Errorf("tinvest: last price: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
+		}
+		mIDs = append(mIDs, mID)
+	}
+
+	req := pb.GetLastPricesRequest{InstrumentId: mIDs}
+	resp, err := a.marketdataClient.GetLastPrices(ctx, &req)
+	if err != nil {
+		return nil, fmt.Errorf("tinvest: last prices: %w", classifyRPCError(err))
+	}
+	pbPrices := resp.GetLastPrices()
+	if pbPrices == nil {
+		return nil, fmt.Errorf("tinvest: last prices: empty response: %w", broker.ErrUnavailable)
+	}
+
+	prices := make([]trade.LastPrice, 0, len(pbPrices))
+	for _, p := range pbPrices {
+		instrumentID, err := trade.NewInstrumentID(p.GetTicker(), p.GetClassCode())
+		if err != nil {
+			return nil, fmt.Errorf("tinvest: last prices: instrument id: %w", err)
+		}
+		pp, err := quotationToDecimal(p.Price)
+		if err != nil {
+			return nil, fmt.Errorf("tinvest: last prices: price: %w", err)
+		}
+		if err := p.GetTime().CheckValid(); err != nil {
+			return nil, fmt.Errorf("tinvest: last prices: time: %w", err)
+		}
+		pt := p.GetTime().AsTime()
+
+		price := trade.LastPrice{
+			InstrumentID: instrumentID,
+			Price:        pp,
+			Time:         pt,
+		}
+		prices = append(prices, price)
+	}
+
+	return prices, nil
+}

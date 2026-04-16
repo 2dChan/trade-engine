@@ -24,10 +24,11 @@ const (
 
 type Adapter struct {
 	conn              *grpc.ClientConn
-	usersClient       pb.UsersServiceClient
 	instrumentsClient pb.InstrumentsServiceClient
+	marketdataClient  pb.MarketDataServiceClient
 	operationsClient  pb.OperationsServiceClient
 	ordersClient      pb.OrdersServiceClient
+	usersClient       pb.UsersServiceClient
 }
 
 var _ broker.Broker = (*Adapter)(nil)
@@ -52,10 +53,11 @@ func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*A
 
 	a := &Adapter{
 		conn:              conn,
-		usersClient:       pb.NewUsersServiceClient(conn),
 		instrumentsClient: pb.NewInstrumentsServiceClient(conn),
+		marketdataClient:  pb.NewMarketDataServiceClient(conn),
 		operationsClient:  pb.NewOperationsServiceClient(conn),
 		ordersClient:      pb.NewOrdersServiceClient(conn),
+		usersClient:       pb.NewUsersServiceClient(conn),
 	}
 
 	return a, nil
