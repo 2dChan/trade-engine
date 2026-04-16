@@ -17,30 +17,30 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 	req := pb.PortfolioRequest{AccountId: accountID}
 	resp, err := a.operationsClient.GetPortfolio(ctx, &req)
 	if err != nil {
-		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: get portfolio: %w", err)
+		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: %w", classifyRPCError(err))
 	}
 	if resp == nil {
-		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: empty response: %w", broker.ErrUnexpectedResponse)
+		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: empty response: %w", broker.ErrUnavailable)
 	}
 
 	pos := make([]trade.Position, 0, len(resp.GetPositions()))
 	for _, p := range resp.GetPositions() {
 		instrumentID, err := trade.NewInstrumentID(p.GetTicker(), p.GetClassCode())
 		if err != nil {
-			return trade.Portfolio{}, fmt.Errorf("tinvest: %w", err)
+			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: %w", err)
 		}
 
 		average, err := moneyValueToAmount(p.GetAveragePositionPrice())
 		if err != nil {
-			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: average position price: %w", err)
+			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position average price: %w", err)
 		}
 		current, err := moneyValueToAmount(p.GetCurrentPrice())
 		if err != nil {
-			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: current position price: %w", err)
+			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position current price: %w", err)
 		}
 		quantity, err := quotationToDecimal(p.GetQuantity())
 		if err != nil {
-			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: quantity: %w", err)
+			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position quantity: %w", err)
 		}
 
 		pos = append(pos, trade.Position{

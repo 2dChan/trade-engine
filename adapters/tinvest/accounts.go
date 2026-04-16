@@ -17,10 +17,10 @@ func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 	req := pb.GetAccountsRequest{}
 	resp, err := a.usersClient.GetAccounts(ctx, &req)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: %w", err)
+		return nil, fmt.Errorf("tinvest: accounts: %w", classifyRPCError(err))
 	}
 	if resp == nil {
-		return nil, fmt.Errorf("tinvest: accounts: empty response: %w", broker.ErrUnexpectedResponse)
+		return nil, fmt.Errorf("tinvest: accounts: empty response: %w", broker.ErrUnavailable)
 	}
 
 	accounts := make([]trade.Account, 0, len(resp.GetAccounts()))

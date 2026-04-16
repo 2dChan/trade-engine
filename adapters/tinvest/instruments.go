@@ -17,33 +17,29 @@ import (
 func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error) {
 	mID, ok := mapTradeInstrumentID(id)
 	if ok == false {
-		return trade.Instrument{}, fmt.Errorf("tinvest: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
 	}
 	req := pb.InstrumentRequest{IdType: pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID, Id: mID}
 	resp, err := a.instrumentsClient.GetInstrumentBy(ctx, &req)
 	if err != nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: %w", classifyRPCError(err))
 	}
-	if resp == nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response: %w", broker.ErrUnexpectedResponse)
-	}
-
 	i := resp.GetInstrument()
 	if i == nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: instrument: empty response: %w", broker.ErrUnexpectedResponse)
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: empty response: %w", broker.ErrUnavailable)
 	}
 
 	instrumentID, err := trade.NewInstrumentID(i.GetTicker(), i.GetClassCode())
 	if err != nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: instrument id: %w", err)
 	}
 	priceStep, err := quotationToDecimal(i.GetMinPriceIncrement())
 	if err != nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: min price increment: %w", err)
 	}
 	quantityStep, err := decimal.NewFromInt64(int64(i.GetLot()), 0, 0)
 	if err != nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: %w", err)
+		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: lot: %w", err)
 	}
 
 	instrument := trade.Instrument{

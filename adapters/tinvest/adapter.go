@@ -35,7 +35,7 @@ var _ broker.Broker = (*Adapter)(nil)
 func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
 	opts, err := NewAdapterOptions(setters...)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: %w", err)
+		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
 	}
 
 	diapOpts := []grpc.DialOption{
@@ -47,7 +47,7 @@ func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*A
 
 	conn, err := grpc.NewClient(opts.endpoint, diapOpts...)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: %w", err)
+		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
 	}
 
 	a := &Adapter{
@@ -66,8 +66,12 @@ func (a *Adapter) Name() string {
 }
 
 func (a *Adapter) Close() error {
-	if a.conn != nil {
-		return a.conn.Close()
+	if a.conn == nil {
+		return nil
+	}
+	err := a.conn.Close()
+	if err != nil {
+		return fmt.Errorf("tinvest: close: %w", err)
 	}
 	return nil
 }

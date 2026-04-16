@@ -23,17 +23,17 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 	req := pb.GetOrdersRequest{AccountId: accountID}
 	resp, err := a.ordersClient.GetOrders(ctx, &req)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: orders: get orders: %w", err)
+		return nil, fmt.Errorf("tinvest: orders: %w", classifyRPCError(err))
 	}
 	if resp == nil {
-		return nil, fmt.Errorf("tinvest: orders: empty response: %w", broker.ErrUnexpectedResponse)
+		return nil, fmt.Errorf("tinvest: orders: empty response: %w", broker.ErrUnavailable)
 	}
 
 	orders := make([]trade.OrderState, 0, len(resp.GetOrders()))
 	for _, o := range resp.GetOrders() {
 		order, err := convertOrderState(o)
 		if err != nil {
-			return nil, fmt.Errorf("tinvest: orders: convert order state: %w", err)
+			return nil, fmt.Errorf("tinvest: orders: %w", err)
 		}
 		orders = append(orders, order)
 	}
@@ -51,15 +51,15 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 
 	resp, err := a.ordersClient.GetOrderState(ctx, &req)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("tinvest: order state: get order state: %w", err)
+		return trade.OrderState{}, fmt.Errorf("tinvest: order state: %w", classifyRPCError(err))
 	}
 	if resp == nil {
-		return trade.OrderState{}, fmt.Errorf("tinvest: order state: empty response: %w", broker.ErrUnexpectedResponse)
+		return trade.OrderState{}, fmt.Errorf("tinvest: order state: empty response: %w", broker.ErrUnavailable)
 	}
 
 	state, err := convertOrderState(resp)
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("tinvest: order state: convert order state: %w", err)
+		return trade.OrderState{}, fmt.Errorf("tinvest: order state: %w", err)
 	}
 
 	return state, nil
@@ -68,20 +68,20 @@ func (a *Adapter) OrderState(ctx context.Context, accountID string, orderID stri
 func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order, setters ...broker.PostOrderOption) (string, error) {
 	opts, err := broker.NewPostOrderOptions(setters...)
 	if err != nil {
-		return "", fmt.Errorf("tinvest: %w", err)
+		return "", fmt.Errorf("tinvest: post order: %w", err)
 	}
 
 	var req pb.PostOrderRequest
 	err = fillPostOrderRequest(&req, accountID, requestID.String(), order, opts.AllowMarginTrade)
 	if err != nil {
-		return "", fmt.Errorf("tinvest: %w", err)
+		return "", fmt.Errorf("tinvest: post order: %w", err)
 	}
 	resp, err := a.ordersClient.PostOrder(ctx, &req)
 	if err != nil {
-		return "", fmt.Errorf("tinvest: post order: %w", err)
+		return "", fmt.Errorf("tinvest: post order: %w", classifyRPCError(err))
 	}
 	if resp == nil {
-		return "", fmt.Errorf("tinvest: post order: empty response: %w", broker.ErrUnexpectedResponse)
+		return "", fmt.Errorf("tinvest: post order: empty response: %w", broker.ErrUnavailable)
 	}
 
 	switch orderRequestIDType {
@@ -90,7 +90,7 @@ func (a *Adapter) PostOrder(ctx context.Context, accountID string, requestID uui
 	case pb.OrderIdType_ORDER_ID_TYPE_EXCHANGE:
 		orderID := resp.GetOrderId()
 		if orderID == "" {
-			return "", fmt.Errorf("tinvest: post order: empty order id: %w", broker.ErrUnexpectedResponse)
+			return "", fmt.Errorf("tinvest: post order: empty order id: %w", broker.ErrUnavailable)
 		}
 		return orderID, nil
 	default:
@@ -107,10 +107,10 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 
 	resp, err := a.ordersClient.CancelOrder(ctx, &req)
 	if err != nil {
-		return fmt.Errorf("tinvest: cancel order: %w", err)
+		return fmt.Errorf("tinvest: cancel order: %w", classifyRPCError(err))
 	}
 	if resp == nil {
-		return fmt.Errorf("tinvest: cancel order: empty response: %w", broker.ErrUnexpectedResponse)
+		return fmt.Errorf("tinvest: cancel order: empty response: %w", broker.ErrUnavailable)
 	}
 
 	return nil
@@ -119,15 +119,15 @@ func (a *Adapter) CancelOrder(ctx context.Context, accountID string, orderID str
 func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string, order trade.Order, allowMarginTrade bool) error {
 	id, ok := mapTradeInstrumentID(order.InstrumentID)
 	if ok == false {
-		return fmt.Errorf("tinvest: invalid order instrument id %q: %w", order.InstrumentID, broker.ErrInvalidRequest)
+		return fmt.Errorf("invalid order instrument id %q: %w", order.InstrumentID, broker.ErrInvalidRequest)
 	}
 	dir, err := mapTradeOrderDirection(order.Direction)
 	if err != nil {
-		return fmt.Errorf("tinvest: %w", err)
+		return err
 	}
 	ordType, err := mapTradeOrderType(order.Type)
 	if err != nil {
-		return fmt.Errorf("tinvest: %w", err)
+		return err
 	}
 
 	req.OrderId = requestID
@@ -142,7 +142,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 	switch ordType {
 	case pb.OrderType_ORDER_TYPE_LIMIT:
 		if !order.Price.IsPos() {
-			return fmt.Errorf("post order: limit order price must be > 0: %w", broker.ErrInvalidRequest)
+			return fmt.Errorf("limit order price must be > 0: %w", broker.ErrInvalidRequest)
 		}
 		price, err := decimalToQuotation(order.Price)
 		if err != nil {
@@ -151,10 +151,10 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 		req.Price = price
 	case pb.OrderType_ORDER_TYPE_MARKET, pb.OrderType_ORDER_TYPE_BESTPRICE:
 		if !order.Price.IsZero() {
-			return fmt.Errorf("post order: market-like order price must be 0: %w", broker.ErrInvalidRequest)
+			return fmt.Errorf("market-like order price must be 0: %w", broker.ErrInvalidRequest)
 		}
 	default:
-		return fmt.Errorf("post order: unsupported order type for price handling %v: %w", ordType, broker.ErrInvalidRequest)
+		return fmt.Errorf("unsupported order type for price handling %v: %w", ordType, broker.ErrInvalidRequest)
 	}
 
 	return nil
@@ -167,7 +167,7 @@ func convertOrderState(o *pb.OrderState) (trade.OrderState, error) {
 
 	instrumentID, err := trade.NewInstrumentID(o.GetTicker(), o.GetClassCode())
 	if err != nil {
-		return trade.OrderState{}, fmt.Errorf("tinvest: %w", err)
+		return trade.OrderState{}, fmt.Errorf("convert order state: %w", err)
 	}
 	status, err := mapOrderStatus(o.GetExecutionReportStatus())
 	if err != nil {
@@ -245,7 +245,7 @@ func mapTradeOrderDirection(d trade.OrderDirection) (pb.OrderDirection, error) {
 		return pb.OrderDirection_ORDER_DIRECTION_SELL, nil
 	default:
 		return pb.OrderDirection_ORDER_DIRECTION_UNSPECIFIED,
-			fmt.Errorf("tinvest: convert trade order direction: unsupported order direction %v", d)
+			fmt.Errorf("convert trade order direction: unsupported order direction %v", d)
 	}
 }
 
@@ -256,7 +256,7 @@ func mapOrderType(t pb.OrderType) (trade.OrderType, error) {
 	case pb.OrderType_ORDER_TYPE_MARKET, pb.OrderType_ORDER_TYPE_BESTPRICE:
 		return trade.Market, nil
 	default:
-		return trade.Market, fmt.Errorf("tinvest: convert order type: unsupported order type %v", t)
+		return trade.Market, fmt.Errorf("convert order type: unsupported order type %v", t)
 	}
 }
 
@@ -268,6 +268,6 @@ func mapTradeOrderType(t trade.OrderType) (pb.OrderType, error) {
 		return pb.OrderType_ORDER_TYPE_MARKET, nil
 	default:
 		return pb.OrderType_ORDER_TYPE_UNSPECIFIED,
-			fmt.Errorf("tinvest: convert trade order type: unsupported order type %v", t)
+			fmt.Errorf("convert trade order type: unsupported order type %v", t)
 	}
 }

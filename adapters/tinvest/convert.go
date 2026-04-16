@@ -69,7 +69,7 @@ func decimalToQuotation(v decimal.Decimal) (*pb.Quotation, error) {
 
 func decimalFromUnitsNano(units int64, nano int32) (decimal.Decimal, error) {
 	if nano <= -nanoScale || nano >= nanoScale {
-		return decimal.Decimal{}, fmt.Errorf("nano out of range: %d", nano)
+		return decimal.Decimal{}, fmt.Errorf("decimal from units nano: nano out of range: %d", nano)
 	}
 
 	switch {
@@ -83,7 +83,7 @@ func decimalFromUnitsNano(units int64, nano int32) (decimal.Decimal, error) {
 
 	val, err := decimal.NewFromInt64(units, int64(nano), nanoScaleDigits)
 	if err != nil {
-		return decimal.Decimal{}, fmt.Errorf("decimal from int64: %w", err)
+		return decimal.Decimal{}, fmt.Errorf("decimal from units nano: %w", err)
 	}
 
 	return val, nil
