@@ -21,5 +21,6 @@ type Broker interface {
 	CancelOrder(ctx context.Context, accountID string, orderID string) error
 	InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error)
 	InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error)
+	LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]trade.LastPrice, error)
 	Close() error
 }
