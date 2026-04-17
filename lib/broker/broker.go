@@ -22,5 +22,6 @@ type Broker interface {
 	InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error)
 	InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error)
 	LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]trade.LastPrice, error)
+	OrderBook(ctx context.Context, id trade.InstrumentID, depth int) (trade.OrderBook, error)
 	Close() error
 }

@@ -10,8 +10,24 @@ import (
 	"github.com/govalues/decimal"
 )
 
+// LastPrice
+
 type LastPrice struct {
 	InstrumentID InstrumentID
 	Price        decimal.Decimal
 	Time         time.Time
+}
+
+// OrderBook
+
+type OrderBook struct {
+	InstrumentID InstrumentID
+	Depth        int
+	Bids         []BookLevel
+	Asks         []BookLevel
+}
+
+type BookLevel struct {
+	Price    decimal.Decimal
+	Quantity int64
 }
