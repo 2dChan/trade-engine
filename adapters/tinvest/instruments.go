@@ -29,10 +29,6 @@ func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (tr
 		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: empty response: %w", broker.ErrUnavailable)
 	}
 
-	instrumentID, err := trade.NewInstrumentID(i.GetTicker(), i.GetClassCode())
-	if err != nil {
-		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: instrument id: %w", err)
-	}
 	priceStep, err := quotationToDecimal(i.GetMinPriceIncrement())
 	if err != nil {
 		return trade.Instrument{}, fmt.Errorf("tinvest: instrument by id: min price increment: %w", err)
@@ -44,7 +40,7 @@ func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (tr
 
 	instrument := trade.Instrument{
 		Name:         i.GetName(),
-		InstrumentID: instrumentID,
+		InstrumentID: id,
 		Type:         mapInstrumentType(i.GetInstrumentKind()),
 		Currency:     mapCurrencyCode(i.GetCurrency()),
 		PriceStep:    priceStep,
