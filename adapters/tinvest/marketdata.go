@@ -58,3 +58,61 @@ func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]t
 
 	return prices, nil
 }
+
+func (a *Adapter) OrderBook(ctx context.Context, id trade.InstrumentID, depth int) (trade.OrderBook, error) {
+	if depth <= 0 || int(int32(depth)) != depth {
+		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: invalid depth %d: %w", depth, broker.ErrInvalidRequest)
+	}
+
+	mID, ok := mapTradeInstrumentID(id)
+	if !ok {
+		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
+	}
+
+	req := pb.GetOrderBookRequest{
+		Depth:        int32(depth),
+		InstrumentId: &mID,
+	}
+	resp, err := a.marketdataClient.GetOrderBook(ctx, &req)
+	if err != nil {
+		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: %w", classifyRPCError(err))
+	}
+	if resp == nil {
+		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: empty response: %w", broker.ErrUnavailable)
+	}
+
+	bids, err := convertBookLevels(resp.GetBids())
+	if err != nil {
+		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: bids: %w", err)
+	}
+	asks, err := convertBookLevels(resp.GetAsks())
+	if err != nil {
+		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: asks: %w", err)
+	}
+
+	book := trade.OrderBook{
+		InstrumentID: id,
+		Depth:        int(resp.GetDepth()),
+		Bids:         bids,
+		Asks:         asks,
+	}
+
+	return book, nil
+}
+
+func convertBookLevels(levels []*pb.Order) ([]trade.BookLevel, error) {
+	bookLevels := make([]trade.BookLevel, 0, len(levels))
+	for i, level := range levels {
+		price, err := quotationToDecimal(level.GetPrice())
+		if err != nil {
+			return nil, fmt.Errorf("level %d: price: %w", i, err)
+		}
+
+		bookLevels = append(bookLevels, trade.BookLevel{
+			Price:    price,
+			Quantity: level.GetQuantity(),
+		})
+	}
+
+	return bookLevels, nil
+}
