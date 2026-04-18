@@ -60,7 +60,9 @@ func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]t
 }
 
 func (a *Adapter) OrderBook(ctx context.Context, id trade.InstrumentID, depth int) (trade.OrderBook, error) {
-	if depth <= 0 || depth > 50 {
+	const maxOrderBookDepth = 50
+
+	if depth <= 0 || depth > maxOrderBookDepth {
 		return trade.OrderBook{}, fmt.Errorf("tinvest: order book: invalid depth %d: %w", depth, broker.ErrInvalidRequest)
 	}
 
