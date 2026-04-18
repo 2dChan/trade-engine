@@ -39,7 +39,7 @@ func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]t
 		if err != nil {
 			return nil, fmt.Errorf("tinvest: last prices: instrument id: %w", err)
 		}
-		pp, err := quotationToDecimal(p.Price)
+		pp, err := quotationToDecimal(p.GetPrice())
 		if err != nil {
 			return nil, fmt.Errorf("tinvest: last prices: price: %w", err)
 		}
