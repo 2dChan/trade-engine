@@ -39,14 +39,14 @@ func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*A
 		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
 	}
 
-	diapOpts := []grpc.DialOption{
+	dialOpts := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(nil)),
 		grpc.WithPerRPCCredentials(oauth.TokenSource{
 			TokenSource: oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
 		}),
 	}
 
-	conn, err := grpc.NewClient(opts.endpoint, diapOpts...)
+	conn, err := grpc.NewClient(opts.endpoint, dialOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
 	}
