@@ -43,15 +43,15 @@ func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]t
 		if err != nil {
 			return nil, fmt.Errorf("tinvest: last prices: price: %w", err)
 		}
-		if err := p.GetTime().CheckValid(); err != nil {
+		ts := p.GetTime()
+		if err := ts.CheckValid(); err != nil {
 			return nil, fmt.Errorf("tinvest: last prices: time: %w", err)
 		}
-		pt := p.GetTime().AsTime()
 
 		price := trade.LastPrice{
 			InstrumentID: instrumentID,
 			Price:        pp,
-			Time:         pt,
+			Time:         ts.AsTime(),
 		}
 		prices = append(prices, price)
 	}
