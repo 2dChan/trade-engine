@@ -23,8 +23,8 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 		return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: empty response: %w", broker.ErrUnavailable)
 	}
 
-	pos := make([]trade.Position, 0, len(resp.GetPositions()))
-	for _, p := range resp.GetPositions() {
+	pos := make([]trade.Position, len(resp.GetPositions()))
+	for i, p := range resp.GetPositions() {
 		instrumentID, err := trade.NewInstrumentID(p.GetTicker(), p.GetClassCode())
 		if err != nil {
 			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position instrument id: %w", err)
@@ -42,13 +42,13 @@ func (a *Adapter) Portfolio(ctx context.Context, accountID string) (trade.Portfo
 			return trade.Portfolio{}, fmt.Errorf("tinvest: portfolio: position quantity: %w", err)
 		}
 
-		pos = append(pos, trade.Position{
+		pos[i] = trade.Position{
 			InstrumentID: instrumentID,
 			Type:         mapInstrumentTypeString(p.GetInstrumentType()),
 			AveragePrice: average,
 			CurrentPrice: current,
 			Quantity:     quantity,
-		})
+		}
 	}
 
 	total, err := moneyValueToAmount(resp.GetTotalAmountPortfolio())

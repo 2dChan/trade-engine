@@ -52,12 +52,12 @@ func (a *Adapter) InstrumentByID(ctx context.Context, id trade.InstrumentID) (tr
 
 func (a *Adapter) InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error) {
 	instrs := make([]trade.Instrument, 0, len(ids))
-	for _, id := range ids {
+	for i, id := range ids {
 		instr, err := a.InstrumentByID(ctx, id)
 		if err != nil {
 			return nil, err
 		}
-		instrs = append(instrs, instr)
+		instrs[i] = instr
 	}
 	return instrs, nil
 }

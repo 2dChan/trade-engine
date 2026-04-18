@@ -29,13 +29,13 @@ func (a *Adapter) Orders(ctx context.Context, accountID string) ([]trade.OrderSt
 		return nil, fmt.Errorf("tinvest: orders: empty response: %w", broker.ErrUnavailable)
 	}
 
-	orders := make([]trade.OrderState, 0, len(resp.GetOrders()))
-	for _, o := range resp.GetOrders() {
+	orders := make([]trade.OrderState, len(resp.GetOrders()))
+	for i, o := range resp.GetOrders() {
 		order, err := convertOrderState(o)
 		if err != nil {
 			return nil, fmt.Errorf("tinvest: orders: %w", err)
 		}
-		orders = append(orders, order)
+		orders[i] = order
 	}
 
 	return orders, nil

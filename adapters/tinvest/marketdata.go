@@ -14,13 +14,13 @@ import (
 )
 
 func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]trade.LastPrice, error) {
-	mIDs := make([]string, 0, len(ids))
-	for _, id := range ids {
+	mIDs := make([]string, len(ids))
+	for i, id := range ids {
 		mID, ok := mapTradeInstrumentID(id)
 		if !ok {
 			return nil, fmt.Errorf("tinvest: last price: invalid instrument id %q: %w", id, broker.ErrInvalidRequest)
 		}
-		mIDs = append(mIDs, mID)
+		mIDs[i] = mID
 	}
 
 	req := pb.GetLastPricesRequest{InstrumentId: mIDs}
@@ -33,8 +33,8 @@ func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]t
 		return nil, fmt.Errorf("tinvest: last prices: empty response: %w", broker.ErrUnavailable)
 	}
 
-	prices := make([]trade.LastPrice, 0, len(pbPrices))
-	for _, p := range pbPrices {
+	prices := make([]trade.LastPrice, len(pbPrices))
+	for i, p := range pbPrices {
 		instrumentID, err := trade.NewInstrumentID(p.GetTicker(), p.GetClassCode())
 		if err != nil {
 			return nil, fmt.Errorf("tinvest: last prices: instrument id: %w", err)
@@ -48,12 +48,11 @@ func (a *Adapter) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]t
 			return nil, fmt.Errorf("tinvest: last prices: time: %w", err)
 		}
 
-		price := trade.LastPrice{
+		prices[i] = trade.LastPrice{
 			InstrumentID: instrumentID,
 			Price:        pp,
 			Time:         ts.AsTime(),
 		}
-		prices = append(prices, price)
 	}
 
 	return prices, nil
@@ -103,17 +102,17 @@ func (a *Adapter) OrderBook(ctx context.Context, id trade.InstrumentID, depth in
 }
 
 func convertBookLevels(levels []*pb.Order) ([]trade.BookLevel, error) {
-	bookLevels := make([]trade.BookLevel, 0, len(levels))
+	bookLevels := make([]trade.BookLevel, len(levels))
 	for i, level := range levels {
 		price, err := quotationToDecimal(level.GetPrice())
 		if err != nil {
 			return nil, fmt.Errorf("level %d: price: %w", i, err)
 		}
 
-		bookLevels = append(bookLevels, trade.BookLevel{
+		bookLevels[i] = trade.BookLevel{
 			Price:    price,
 			Quantity: level.GetQuantity(),
-		})
+		}
 	}
 
 	return bookLevels, nil

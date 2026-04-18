@@ -23,12 +23,12 @@ func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 		return nil, fmt.Errorf("tinvest: accounts: empty response: %w", broker.ErrUnavailable)
 	}
 
-	accounts := make([]trade.Account, 0, len(resp.GetAccounts()))
-	for _, a := range resp.GetAccounts() {
-		accounts = append(accounts, trade.Account{
+	accounts := make([]trade.Account, len(resp.GetAccounts()))
+	for i, a := range resp.GetAccounts() {
+		accounts[i] = trade.Account{
 			ID:   a.GetId(),
 			Name: a.GetName(),
-		})
+		}
 	}
 
 	return accounts, nil
