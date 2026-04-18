@@ -93,7 +93,7 @@ func (a *Adapter) OrderBook(ctx context.Context, id trade.InstrumentID, depth in
 
 	book := trade.OrderBook{
 		InstrumentID: id,
-		Depth:        int(resp.GetDepth()),
+		Depth:        depth,
 		Bids:         bids,
 		Asks:         asks,
 	}
