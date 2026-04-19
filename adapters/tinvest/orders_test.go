@@ -161,6 +161,18 @@ func TestFillPostOrderRequest(t *testing.T) {
 		}
 	})
 
+	t.Run("non-positive quantity", func(t *testing.T) {
+		order := trade.Order{InstrumentID: validID, Type: trade.Market, Direction: trade.Buy, Quantity: 0, Price: decimal.MustParse("0")}
+		var req pb.PostOrderRequest
+		err := fillPostOrderRequest(&req, "acc", "rid", order, false)
+		if err == nil {
+			t.Fatalf("fillPostOrderRequest() expected error")
+		}
+		if !errors.Is(err, broker.ErrInvalidRequest) {
+			t.Fatalf("fillPostOrderRequest() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
+		}
+	})
+
 	t.Run("limit with non-positive price", func(t *testing.T) {
 		order := trade.Order{InstrumentID: validID, Type: trade.Limit, Direction: trade.Buy, Quantity: 1, Price: decimal.MustParse("0")}
 		var req pb.PostOrderRequest

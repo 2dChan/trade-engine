@@ -121,6 +121,9 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 	if !ok {
 		return fmt.Errorf("invalid order instrument id %q: %w", order.InstrumentID, broker.ErrInvalidRequest)
 	}
+	if order.Quantity <= 0 {
+		return fmt.Errorf("instrument %q: order quantity must be > 0, got %d: %w", order.InstrumentID, order.Quantity, broker.ErrInvalidRequest)
+	}
 	dir, err := mapTradeOrderDirection(order.Direction)
 	if err != nil {
 		return err
