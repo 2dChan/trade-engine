@@ -6,6 +6,7 @@ package tinvest
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
@@ -59,6 +60,9 @@ func decimalToQuotation(v decimal.Decimal) (*pb.Quotation, error) {
 	units, nano, ok := v.Int64(nanoScaleDigits)
 	if !ok {
 		return nil, fmt.Errorf("decimal to quotation: cannot represent %q as quotation", v)
+	}
+	if nano < math.MinInt32 || nano > math.MaxInt32 {
+		return nil, fmt.Errorf("decimal to quotation: nano out of int32 range: %d", nano)
 	}
 
 	return &pb.Quotation{
