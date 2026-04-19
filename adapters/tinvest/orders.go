@@ -145,7 +145,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 	switch ordType {
 	case pb.OrderType_ORDER_TYPE_LIMIT:
 		if !order.Price.IsPos() {
-			return fmt.Errorf("limit order price must be > 0: %w", broker.ErrInvalidRequest)
+			return fmt.Errorf("instrument %q: limit order price must be > 0, got %s: %w", order.InstrumentID, order.Price, broker.ErrInvalidRequest)
 		}
 		price, err := decimalToQuotation(order.Price)
 		if err != nil {
@@ -154,7 +154,7 @@ func fillPostOrderRequest(req *pb.PostOrderRequest, accountID, requestID string,
 		req.Price = price
 	case pb.OrderType_ORDER_TYPE_MARKET, pb.OrderType_ORDER_TYPE_BESTPRICE:
 		if !order.Price.IsZero() {
-			return fmt.Errorf("market-like order price must be 0: %w", broker.ErrInvalidRequest)
+			return fmt.Errorf("instrument %q: market-like order price must be 0, got %s: %w", order.InstrumentID, order.Price, broker.ErrInvalidRequest)
 		}
 	default:
 		return fmt.Errorf("unsupported order type for price handling %v: %w", ordType, broker.ErrInvalidRequest)
