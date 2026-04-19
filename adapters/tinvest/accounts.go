@@ -24,10 +24,10 @@ func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {
 	}
 
 	accounts := make([]trade.Account, len(resp.GetAccounts()))
-	for i, a := range resp.GetAccounts() {
+	for i, ac := range resp.GetAccounts() {
 		accounts[i] = trade.Account{
-			ID:   a.GetId(),
-			Name: a.GetName(),
+			ID:   ac.GetId(),
+			Name: ac.GetName(),
 		}
 	}
 
