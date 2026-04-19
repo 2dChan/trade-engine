@@ -71,8 +71,7 @@ func (a *Adapter) Close() error {
 	if a.conn == nil {
 		return nil
 	}
-	err := a.conn.Close()
-	if err != nil {
+	if err := a.conn.Close(); err != nil {
 		return fmt.Errorf("tinvest: close: %w", err)
 	}
 	return nil
