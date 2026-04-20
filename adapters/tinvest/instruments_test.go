@@ -47,10 +47,10 @@ func TestInstrumentByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		adapter := &Adapter{instrumentsClient: &instrumentsServiceClientStub{getInstrumentByFn: func(_ context.Context, req *pb.InstrumentRequest, _ ...grpc.CallOption) (*pb.InstrumentResponse, error) {
 			if req.GetIdType() != pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID {
-				t.Fatalf("GetInstrumentBy id_type = %v, want %v", req.GetIdType(), pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID)
+				t.Errorf("GetInstrumentBy id_type = %v, want %v", req.GetIdType(), pb.InstrumentIdType_INSTRUMENT_ID_TYPE_ID)
 			}
 			if req.GetId() != "SBER_TQBR" {
-				t.Fatalf("GetInstrumentBy id = %q, want %q", req.GetId(), "SBER_TQBR")
+				t.Errorf("GetInstrumentBy id = %q, want %q", req.GetId(), "SBER_TQBR")
 			}
 			return baseInstrumentResponse(), nil
 		}}}
@@ -61,22 +61,22 @@ func TestInstrumentByID(t *testing.T) {
 		}
 
 		if got.Name != "Sberbank" {
-			t.Fatalf("Adapter.InstrumentByID() name = %q, want %q", got.Name, "Sberbank")
+			t.Errorf("Adapter.InstrumentByID() name = %q, want %q", got.Name, "Sberbank")
 		}
 		if got.InstrumentID != validID {
-			t.Fatalf("Adapter.InstrumentByID() instrument_id = %q, want %q", got.InstrumentID, validID)
+			t.Errorf("Adapter.InstrumentByID() instrument_id = %q, want %q", got.InstrumentID, validID)
 		}
 		if got.Type != trade.Share {
-			t.Fatalf("Adapter.InstrumentByID() type = %v, want %v", got.Type, trade.Share)
+			t.Errorf("Adapter.InstrumentByID() type = %v, want %v", got.Type, trade.Share)
 		}
 		if got.Currency != asset.AssetUSD {
-			t.Fatalf("Adapter.InstrumentByID() currency = %q, want %q", got.Currency, asset.AssetUSD)
+			t.Errorf("Adapter.InstrumentByID() currency = %q, want %q", got.Currency, asset.AssetUSD)
 		}
 		if got.PriceStep.Cmp(decimal.MustParse("0.01")) != 0 {
-			t.Fatalf("Adapter.InstrumentByID() price_step = %s, want 0.01", got.PriceStep)
+			t.Errorf("Adapter.InstrumentByID() price_step = %s, want 0.01", got.PriceStep)
 		}
 		if got.QuantityStep.Cmp(decimal.MustParse("10")) != 0 {
-			t.Fatalf("Adapter.InstrumentByID() quantity_step = %s, want 10", got.QuantityStep)
+			t.Errorf("Adapter.InstrumentByID() quantity_step = %s, want 10", got.QuantityStep)
 		}
 	})
 
@@ -87,7 +87,7 @@ func TestInstrumentByID(t *testing.T) {
 			t.Fatalf("Adapter.InstrumentByID() expected error")
 		}
 		if !errors.Is(err, broker.ErrInvalidRequest) {
-			t.Fatalf("Adapter.InstrumentByID() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
+			t.Errorf("Adapter.InstrumentByID() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
 		}
 	})
 
@@ -101,7 +101,7 @@ func TestInstrumentByID(t *testing.T) {
 			t.Fatalf("Adapter.InstrumentByID() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnauthorized) {
-			t.Fatalf("Adapter.InstrumentByID() error = %v, want errors.Is(..., broker.ErrUnauthorized)", err)
+			t.Errorf("Adapter.InstrumentByID() error = %v, want errors.Is(..., broker.ErrUnauthorized)", err)
 		}
 	})
 
@@ -115,7 +115,7 @@ func TestInstrumentByID(t *testing.T) {
 			t.Fatalf("Adapter.InstrumentByID() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.InstrumentByID() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.InstrumentByID() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 
@@ -128,7 +128,7 @@ func TestInstrumentByID(t *testing.T) {
 
 		_, err := adapter.InstrumentByID(context.Background(), validID)
 		if err == nil {
-			t.Fatalf("Adapter.InstrumentByID() expected error")
+			t.Errorf("Adapter.InstrumentByID() expected error")
 		}
 	})
 }
@@ -161,7 +161,7 @@ func TestInstrumentsByIDs(t *testing.T) {
 			t.Fatalf("Adapter.InstrumentsByIDs() len = %d, want 2", len(got))
 		}
 		if got[0].Name != "Sberbank" || got[1].Name != "Gazprom" {
-			t.Fatalf("Adapter.InstrumentsByIDs() names = [%q %q], want [Sberbank Gazprom]", got[0].Name, got[1].Name)
+			t.Errorf("Adapter.InstrumentsByIDs() names = [%q %q], want [Sberbank Gazprom]", got[0].Name, got[1].Name)
 		}
 	})
 
@@ -175,7 +175,7 @@ func TestInstrumentsByIDs(t *testing.T) {
 			t.Fatalf("Adapter.InstrumentsByIDs() expected error")
 		}
 		if !errors.Is(err, broker.ErrInvalidRequest) {
-			t.Fatalf("Adapter.InstrumentsByIDs() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
+			t.Errorf("Adapter.InstrumentsByIDs() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
 		}
 	})
 }
@@ -204,7 +204,7 @@ func TestMapInstrumentType(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := mapInstrumentType(tt.in)
 			if got != tt.want {
-				t.Fatalf("mapInstrumentType(%v) = %v, want %v", tt.in, got, tt.want)
+				t.Errorf("mapInstrumentType(%v) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}

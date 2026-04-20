@@ -46,10 +46,10 @@ func TestAccounts(t *testing.T) {
 			t.Fatalf("Adapter.Accounts() len = %d, want 2", len(got))
 		}
 		if got[0].ID != "a-1" || got[0].Name != "Main" {
-			t.Fatalf("Adapter.Accounts()[0] = %+v, want ID=a-1 Name=Main", got[0])
+			t.Errorf("Adapter.Accounts()[0] = %+v, want ID=a-1 Name=Main", got[0])
 		}
 		if got[1].ID != "a-2" || got[1].Name != "IIS" {
-			t.Fatalf("Adapter.Accounts()[1] = %+v, want ID=a-2 Name=IIS", got[1])
+			t.Errorf("Adapter.Accounts()[1] = %+v, want ID=a-2 Name=IIS", got[1])
 		}
 	})
 
@@ -67,7 +67,7 @@ func TestAccounts(t *testing.T) {
 			t.Fatalf("Adapter.Accounts() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnauthorized) {
-			t.Fatalf("Adapter.Accounts() error = %v, want errors.Is(..., broker.ErrUnauthorized)", err)
+			t.Errorf("Adapter.Accounts() error = %v, want errors.Is(..., broker.ErrUnauthorized)", err)
 		}
 	})
 
@@ -85,7 +85,7 @@ func TestAccounts(t *testing.T) {
 			t.Fatalf("Adapter.Accounts() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.Accounts() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.Accounts() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 }

@@ -38,7 +38,7 @@ func TestSentinelForCode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := sentinelForCode(tt.code)
 			if !errors.Is(got, tt.want) {
-				t.Fatalf("sentinelForCode(%v) = %v, want %v", tt.code, got, tt.want)
+				t.Errorf("sentinelForCode(%v) = %v, want %v", tt.code, got, tt.want)
 			}
 		})
 	}
@@ -69,21 +69,21 @@ func TestClassifyRPCError(t *testing.T) {
 			got := classifyRPCError(tt.err)
 			if tt.err == nil {
 				if got != nil {
-					t.Fatalf("classifyRPCError(nil) = %v, want nil", got)
+					t.Errorf("classifyRPCError(nil) = %v, want nil", got)
 				}
 				return
 			}
 			if tt.wantSame && got != tt.err {
-				t.Fatalf("classifyRPCError(%v) returned wrapped error, expected original", tt.err)
+				t.Errorf("classifyRPCError(%v) returned wrapped error, expected original", tt.err)
 			}
 			for _, target := range tt.wantIs {
 				if !errors.Is(got, target) {
-					t.Fatalf("classifyRPCError(%v) = %v, want errors.Is(..., %v)", tt.err, got, target)
+					t.Errorf("classifyRPCError(%v) = %v, want errors.Is(..., %v)", tt.err, got, target)
 				}
 			}
 			for _, target := range tt.wantNot {
 				if errors.Is(got, target) {
-					t.Fatalf("classifyRPCError(%v) = %v, did not expect errors.Is(..., %v)", tt.err, got, target)
+					t.Errorf("classifyRPCError(%v) = %v, did not expect errors.Is(..., %v)", tt.err, got, target)
 				}
 			}
 		})

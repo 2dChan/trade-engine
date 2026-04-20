@@ -28,7 +28,7 @@ func TestNewAdapterOptions(t *testing.T) {
 			got, err := NewAdapterOptions(tt.setters...)
 			if tt.wantErr {
 				if err == nil {
-					t.Fatalf("NewAdapterOptions() expected error")
+					t.Errorf("NewAdapterOptions() expected error")
 				}
 				return
 			}
@@ -36,10 +36,10 @@ func TestNewAdapterOptions(t *testing.T) {
 				t.Fatalf("NewAdapterOptions() returned error: %v", err)
 			}
 			if got.endpoint != tt.wantEndpoint {
-				t.Fatalf("NewAdapterOptions() endpoint = %q, want %q", got.endpoint, tt.wantEndpoint)
+				t.Errorf("NewAdapterOptions() endpoint = %q, want %q", got.endpoint, tt.wantEndpoint)
 			}
 			if got.startupCheck != tt.wantStartupCheck {
-				t.Fatalf("NewAdapterOptions() startupCheck = %t, want %t", got.startupCheck, tt.wantStartupCheck)
+				t.Errorf("NewAdapterOptions() startupCheck = %t, want %t", got.startupCheck, tt.wantStartupCheck)
 			}
 		})
 	}

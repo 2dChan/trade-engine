@@ -32,14 +32,14 @@ func (m *mockUsersServiceClient) GetAccounts(ctx context.Context, in *pb.GetAcco
 func TestAdapterName(t *testing.T) {
 	a := &Adapter{}
 	if got := a.Name(); got != name {
-		t.Fatalf("Adapter.Name() = %q, want %q", got, name)
+		t.Errorf("Adapter.Name() = %q, want %q", got, name)
 	}
 }
 
 func TestAdapterCloseNilConn(t *testing.T) {
 	a := &Adapter{}
 	if err := a.Close(); err != nil {
-		t.Fatalf("Adapter.Close() returned error: %v", err)
+		t.Errorf("Adapter.Close() returned error: %v", err)
 	}
 }
 
@@ -101,7 +101,7 @@ func TestAdapterStartupCheck(t *testing.T) {
 
 			if tt.wantErrIs == nil && tt.wantErrSameAs == nil {
 				if err != nil {
-					t.Fatalf("startupCheck() returned error: %v", err)
+					t.Errorf("startupCheck() returned error: %v", err)
 				}
 				return
 			}
@@ -111,10 +111,10 @@ func TestAdapterStartupCheck(t *testing.T) {
 			}
 
 			if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
-				t.Fatalf("startupCheck() error = %v, want errors.Is(..., %v)", err, tt.wantErrIs)
+				t.Errorf("startupCheck() error = %v, want errors.Is(..., %v)", err, tt.wantErrIs)
 			}
 			if tt.wantErrSameAs != nil && err != tt.wantErrSameAs {
-				t.Fatalf("startupCheck() error = %v, want same error %v", err, tt.wantErrSameAs)
+				t.Errorf("startupCheck() error = %v, want same error %v", err, tt.wantErrSameAs)
 			}
 		})
 	}

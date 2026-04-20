@@ -47,7 +47,7 @@ func TestLastPrices(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		adapter := &Adapter{marketdataClient: &marketDataServiceClientStub{getLastPricesFn: func(_ context.Context, req *pb.GetLastPricesRequest, _ ...grpc.CallOption) (*pb.GetLastPricesResponse, error) {
 			if len(req.GetInstrumentId()) != 1 || req.GetInstrumentId()[0] != "SBER_TQBR" {
-				t.Fatalf("GetLastPrices instrument_id = %v, want [SBER_TQBR]", req.GetInstrumentId())
+				t.Errorf("GetLastPrices instrument_id = %v, want [SBER_TQBR]", req.GetInstrumentId())
 			}
 			return &pb.GetLastPricesResponse{LastPrices: []*pb.LastPrice{{Ticker: "SBER", ClassCode: "TQBR", Price: &pb.Quotation{Units: 250, Nano: 500_000_000}, Time: validTime}}}, nil
 		}}}
@@ -60,13 +60,13 @@ func TestLastPrices(t *testing.T) {
 			t.Fatalf("Adapter.LastPrices() len = %d, want 1", len(got))
 		}
 		if got[0].InstrumentID != mustTradeInstrumentID(t, "SBER", "TQBR") {
-			t.Fatalf("Adapter.LastPrices()[0].instrument_id = %q, want %q", got[0].InstrumentID, "SBER:TQBR")
+			t.Errorf("Adapter.LastPrices()[0].instrument_id = %q, want %q", got[0].InstrumentID, "SBER:TQBR")
 		}
 		if got[0].Price.Cmp(decimal.MustParse("250.5")) != 0 {
-			t.Fatalf("Adapter.LastPrices()[0].price = %s, want 250.5", got[0].Price)
+			t.Errorf("Adapter.LastPrices()[0].price = %s, want 250.5", got[0].Price)
 		}
 		if !got[0].Time.Equal(validTime.AsTime()) {
-			t.Fatalf("Adapter.LastPrices()[0].time = %v, want %v", got[0].Time, validTime.AsTime())
+			t.Errorf("Adapter.LastPrices()[0].time = %v, want %v", got[0].Time, validTime.AsTime())
 		}
 	})
 
@@ -77,7 +77,7 @@ func TestLastPrices(t *testing.T) {
 			t.Fatalf("Adapter.LastPrices() expected error")
 		}
 		if !errors.Is(err, broker.ErrInvalidRequest) {
-			t.Fatalf("Adapter.LastPrices() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
+			t.Errorf("Adapter.LastPrices() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
 		}
 	})
 
@@ -91,7 +91,7 @@ func TestLastPrices(t *testing.T) {
 			t.Fatalf("Adapter.LastPrices() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.LastPrices() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.LastPrices() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 
@@ -105,7 +105,7 @@ func TestLastPrices(t *testing.T) {
 			t.Fatalf("Adapter.LastPrices() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.LastPrices() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.LastPrices() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 
@@ -126,7 +126,7 @@ func TestLastPrices(t *testing.T) {
 
 			_, err := adapter.LastPrices(context.Background(), ids)
 			if err == nil {
-				t.Fatalf("Adapter.LastPrices() expected error")
+				t.Errorf("Adapter.LastPrices() expected error")
 			}
 		})
 	}
@@ -138,10 +138,10 @@ func TestOrderBook(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		adapter := &Adapter{marketdataClient: &marketDataServiceClientStub{getOrderBookFn: func(_ context.Context, req *pb.GetOrderBookRequest, _ ...grpc.CallOption) (*pb.GetOrderBookResponse, error) {
 			if req.GetDepth() != 10 {
-				t.Fatalf("GetOrderBook depth = %d, want 10", req.GetDepth())
+				t.Errorf("GetOrderBook depth = %d, want 10", req.GetDepth())
 			}
 			if req.GetInstrumentId() != "SBER_TQBR" {
-				t.Fatalf("GetOrderBook instrument_id = %q, want %q", req.GetInstrumentId(), "SBER_TQBR")
+				t.Errorf("GetOrderBook instrument_id = %q, want %q", req.GetInstrumentId(), "SBER_TQBR")
 			}
 			return &pb.GetOrderBookResponse{
 				Bids: []*pb.Order{{Price: &pb.Quotation{Units: 100, Nano: 100_000_000}, Quantity: 2}},
@@ -154,16 +154,16 @@ func TestOrderBook(t *testing.T) {
 			t.Fatalf("Adapter.OrderBook() returned error: %v", err)
 		}
 		if got.InstrumentID != id || got.Depth != 10 {
-			t.Fatalf("Adapter.OrderBook() meta = (%q,%d), want (%q,10)", got.InstrumentID, got.Depth, id)
+			t.Errorf("Adapter.OrderBook() meta = (%q,%d), want (%q,10)", got.InstrumentID, got.Depth, id)
 		}
 		if len(got.Bids) != 1 || len(got.Asks) != 1 {
 			t.Fatalf("Adapter.OrderBook() levels = (%d,%d), want (1,1)", len(got.Bids), len(got.Asks))
 		}
 		if got.Bids[0].Price.Cmp(decimal.MustParse("100.1")) != 0 || got.Bids[0].Quantity != 2 {
-			t.Fatalf("Adapter.OrderBook() bid = (%s,%d), want (100.1,2)", got.Bids[0].Price, got.Bids[0].Quantity)
+			t.Errorf("Adapter.OrderBook() bid = (%s,%d), want (100.1,2)", got.Bids[0].Price, got.Bids[0].Quantity)
 		}
 		if got.Asks[0].Price.Cmp(decimal.MustParse("101.9")) != 0 || got.Asks[0].Quantity != 3 {
-			t.Fatalf("Adapter.OrderBook() ask = (%s,%d), want (101.9,3)", got.Asks[0].Price, got.Asks[0].Quantity)
+			t.Errorf("Adapter.OrderBook() ask = (%s,%d), want (101.9,3)", got.Asks[0].Price, got.Asks[0].Quantity)
 		}
 	})
 
@@ -174,7 +174,7 @@ func TestOrderBook(t *testing.T) {
 			t.Fatalf("Adapter.OrderBook() expected error")
 		}
 		if !errors.Is(err, broker.ErrInvalidRequest) {
-			t.Fatalf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
+			t.Errorf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
 		}
 	})
 
@@ -185,7 +185,7 @@ func TestOrderBook(t *testing.T) {
 			t.Fatalf("Adapter.OrderBook() expected error")
 		}
 		if !errors.Is(err, broker.ErrInvalidRequest) {
-			t.Fatalf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
+			t.Errorf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrInvalidRequest)", err)
 		}
 	})
 
@@ -199,7 +199,7 @@ func TestOrderBook(t *testing.T) {
 			t.Fatalf("Adapter.OrderBook() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 
@@ -213,7 +213,7 @@ func TestOrderBook(t *testing.T) {
 			t.Fatalf("Adapter.OrderBook() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.OrderBook() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 
@@ -224,7 +224,7 @@ func TestOrderBook(t *testing.T) {
 
 		_, err := adapter.OrderBook(context.Background(), id, 5)
 		if err == nil {
-			t.Fatalf("Adapter.OrderBook() expected error")
+			t.Errorf("Adapter.OrderBook() expected error")
 		}
 	})
 
@@ -235,7 +235,7 @@ func TestOrderBook(t *testing.T) {
 
 		_, err := adapter.OrderBook(context.Background(), id, 5)
 		if err == nil {
-			t.Fatalf("Adapter.OrderBook() expected error")
+			t.Errorf("Adapter.OrderBook() expected error")
 		}
 	})
 }
@@ -251,14 +251,14 @@ func TestConvertBookLevels(t *testing.T) {
 			t.Fatalf("convertBookLevels() len = %d, want 1", len(got))
 		}
 		if got[0].Price.Cmp(decimal.MustParse("3.5")) != 0 || got[0].Quantity != 9 {
-			t.Fatalf("convertBookLevels() level = (%s,%d), want (3.5,9)", got[0].Price, got[0].Quantity)
+			t.Errorf("convertBookLevels() level = (%s,%d), want (3.5,9)", got[0].Price, got[0].Quantity)
 		}
 	})
 
 	t.Run("invalid level price", func(t *testing.T) {
 		_, err := convertBookLevels([]*pb.Order{{Price: nil}})
 		if err == nil {
-			t.Fatalf("convertBookLevels() expected error")
+			t.Errorf("convertBookLevels() expected error")
 		}
 	})
 }

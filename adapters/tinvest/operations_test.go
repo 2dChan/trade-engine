@@ -51,7 +51,7 @@ func TestPortfolio(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		adapter := &Adapter{operationsClient: &operationsServiceClientStub{getPortfolioFn: func(_ context.Context, req *pb.PortfolioRequest, _ ...grpc.CallOption) (*pb.PortfolioResponse, error) {
 			if req.GetAccountId() != "acc-1" {
-				t.Fatalf("GetPortfolio account_id = %q, want %q", req.GetAccountId(), "acc-1")
+				t.Errorf("GetPortfolio account_id = %q, want %q", req.GetAccountId(), "acc-1")
 			}
 			return basePortfolioResponse(), nil
 		}}}
@@ -62,10 +62,10 @@ func TestPortfolio(t *testing.T) {
 		}
 
 		if got.AccountID != "acc-1" {
-			t.Fatalf("Adapter.Portfolio() account_id = %q, want %q", got.AccountID, "acc-1")
+			t.Errorf("Adapter.Portfolio() account_id = %q, want %q", got.AccountID, "acc-1")
 		}
 		if got.TotalAmount.Code() != "RUB" || got.TotalAmount.Value().Cmp(decimal.MustParse("1000")) != 0 {
-			t.Fatalf("Adapter.Portfolio() total = %s, want RUB 1000", got.TotalAmount)
+			t.Errorf("Adapter.Portfolio() total = %s, want RUB 1000", got.TotalAmount)
 		}
 		if len(got.Positions) != 1 {
 			t.Fatalf("Adapter.Portfolio() positions len = %d, want 1", len(got.Positions))
@@ -73,19 +73,19 @@ func TestPortfolio(t *testing.T) {
 
 		pos := got.Positions[0]
 		if pos.InstrumentID != mustTradeInstrumentID(t, "SBER", "TQBR") {
-			t.Fatalf("Adapter.Portfolio() position instrument = %q, want %q", pos.InstrumentID, "SBER:TQBR")
+			t.Errorf("Adapter.Portfolio() position instrument = %q, want %q", pos.InstrumentID, "SBER:TQBR")
 		}
 		if pos.Type != trade.Share {
-			t.Fatalf("Adapter.Portfolio() position type = %v, want %v", pos.Type, trade.Share)
+			t.Errorf("Adapter.Portfolio() position type = %v, want %v", pos.Type, trade.Share)
 		}
 		if pos.AveragePrice.Code() != "RUB" || pos.AveragePrice.Value().Cmp(decimal.MustParse("100.5")) != 0 {
-			t.Fatalf("Adapter.Portfolio() average price = %s, want RUB 100.5", pos.AveragePrice)
+			t.Errorf("Adapter.Portfolio() average price = %s, want RUB 100.5", pos.AveragePrice)
 		}
 		if pos.CurrentPrice.Code() != "RUB" || pos.CurrentPrice.Value().Cmp(decimal.MustParse("101")) != 0 {
-			t.Fatalf("Adapter.Portfolio() current price = %s, want RUB 101", pos.CurrentPrice)
+			t.Errorf("Adapter.Portfolio() current price = %s, want RUB 101", pos.CurrentPrice)
 		}
 		if pos.Quantity.Cmp(decimal.MustParse("2.25")) != 0 {
-			t.Fatalf("Adapter.Portfolio() quantity = %s, want 2.25", pos.Quantity)
+			t.Errorf("Adapter.Portfolio() quantity = %s, want 2.25", pos.Quantity)
 		}
 	})
 
@@ -99,7 +99,7 @@ func TestPortfolio(t *testing.T) {
 			t.Fatalf("Adapter.Portfolio() expected error")
 		}
 		if !errors.Is(err, broker.ErrRateLimited) {
-			t.Fatalf("Adapter.Portfolio() error = %v, want errors.Is(..., broker.ErrRateLimited)", err)
+			t.Errorf("Adapter.Portfolio() error = %v, want errors.Is(..., broker.ErrRateLimited)", err)
 		}
 	})
 
@@ -113,7 +113,7 @@ func TestPortfolio(t *testing.T) {
 			t.Fatalf("Adapter.Portfolio() expected error")
 		}
 		if !errors.Is(err, broker.ErrUnavailable) {
-			t.Fatalf("Adapter.Portfolio() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
+			t.Errorf("Adapter.Portfolio() error = %v, want errors.Is(..., broker.ErrUnavailable)", err)
 		}
 	})
 
@@ -140,7 +140,7 @@ func TestPortfolio(t *testing.T) {
 
 			_, err := adapter.Portfolio(context.Background(), "acc")
 			if err == nil {
-				t.Fatalf("Adapter.Portfolio() expected error")
+				t.Errorf("Adapter.Portfolio() expected error")
 			}
 		})
 	}
@@ -169,7 +169,7 @@ func TestMapInstrumentTypeString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := mapInstrumentTypeString(tt.in)
 			if got != tt.want {
-				t.Fatalf("mapInstrumentTypeString(%q) = %v, want %v", tt.in, got, tt.want)
+				t.Errorf("mapInstrumentTypeString(%q) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}

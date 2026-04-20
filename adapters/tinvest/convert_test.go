@@ -30,7 +30,7 @@ func TestMapCurrencyCode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := mapCurrencyCode(tt.raw)
 			if got != tt.want {
-				t.Fatalf("mapCurrencyCode(%q) = %q, want %q", tt.raw, got, tt.want)
+				t.Errorf("mapCurrencyCode(%q) = %q, want %q", tt.raw, got, tt.want)
 			}
 		})
 	}
@@ -57,7 +57,7 @@ func TestDecimalFromUnitsNano(t *testing.T) {
 				t.Fatalf("decimalFromUnitsNano(%d, %d) returned error: %v", tt.units, tt.nano, err)
 			}
 			if got.Cmp(tt.want) != 0 {
-				t.Fatalf("decimalFromUnitsNano(%d, %d) = %s, want %s", tt.units, tt.nano, got, tt.want)
+				t.Errorf("decimalFromUnitsNano(%d, %d) = %s, want %s", tt.units, tt.nano, got, tt.want)
 			}
 		})
 	}
@@ -77,7 +77,7 @@ func TestDecimalFromUnitsNano_OutOfRangeNano(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := decimalFromUnitsNano(tt.units, tt.nano)
 			if err == nil {
-				t.Fatalf("decimalFromUnitsNano(%d, %d) expected error", tt.units, tt.nano)
+				t.Errorf("decimalFromUnitsNano(%d, %d) expected error", tt.units, tt.nano)
 			}
 		})
 	}
@@ -101,7 +101,7 @@ func TestQuotationToDecimal(t *testing.T) {
 			got, err := quotationToDecimal(tt.q)
 			if tt.wantErr {
 				if err == nil {
-					t.Fatalf("quotationToDecimal() expected error")
+					t.Errorf("quotationToDecimal() expected error")
 				}
 				return
 			}
@@ -109,7 +109,7 @@ func TestQuotationToDecimal(t *testing.T) {
 				t.Fatalf("quotationToDecimal() returned error: %v", err)
 			}
 			if got.Cmp(tt.want) != 0 {
-				t.Fatalf("quotationToDecimal() = %s, want %s", got, tt.want)
+				t.Errorf("quotationToDecimal() = %s, want %s", got, tt.want)
 			}
 		})
 	}
@@ -135,7 +135,7 @@ func TestDecimalToQuotation(t *testing.T) {
 			got, err := decimalToQuotation(input)
 			if tt.wantErr {
 				if err == nil {
-					t.Fatalf("decimalToQuotation(%s) expected error", input)
+					t.Errorf("decimalToQuotation(%s) expected error", input)
 				}
 				return
 			}
@@ -143,7 +143,7 @@ func TestDecimalToQuotation(t *testing.T) {
 				t.Fatalf("decimalToQuotation(%s) returned error: %v", input, err)
 			}
 			if got.GetUnits() != tt.wantUnits || got.GetNano() != tt.wantNano {
-				t.Fatalf("decimalToQuotation(%s) = (%d, %d), want (%d, %d)", input, got.GetUnits(), got.GetNano(), tt.wantUnits, tt.wantNano)
+				t.Errorf("decimalToQuotation(%s) = (%d, %d), want (%d, %d)", input, got.GetUnits(), got.GetNano(), tt.wantUnits, tt.wantNano)
 			}
 		})
 	}
@@ -168,7 +168,7 @@ func TestMoneyValueToAmount(t *testing.T) {
 			got, err := moneyValueToAmount(tt.value)
 			if tt.wantErr {
 				if err == nil {
-					t.Fatalf("moneyValueToAmount() expected error")
+					t.Errorf("moneyValueToAmount() expected error")
 				}
 				return
 			}
@@ -176,10 +176,10 @@ func TestMoneyValueToAmount(t *testing.T) {
 				t.Fatalf("moneyValueToAmount() returned error: %v", err)
 			}
 			if got.Code() != tt.wantCode {
-				t.Fatalf("moneyValueToAmount() code = %q, want %q", got.Code(), tt.wantCode)
+				t.Errorf("moneyValueToAmount() code = %q, want %q", got.Code(), tt.wantCode)
 			}
 			if got.Value().Cmp(tt.wantVal) != 0 {
-				t.Fatalf("moneyValueToAmount() value = %s, want %s", got.Value(), tt.wantVal)
+				t.Errorf("moneyValueToAmount() value = %s, want %s", got.Value(), tt.wantVal)
 			}
 		})
 	}
@@ -207,10 +207,10 @@ func TestMapTradeInstrumentID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, ok := mapTradeInstrumentID(tt.id)
 			if ok != tt.wantOK {
-				t.Fatalf("mapTradeInstrumentID(%q) ok = %v, want %v", tt.id, ok, tt.wantOK)
+				t.Errorf("mapTradeInstrumentID(%q) ok = %v, want %v", tt.id, ok, tt.wantOK)
 			}
 			if got != tt.want {
-				t.Fatalf("mapTradeInstrumentID(%q) = %q, want %q", tt.id, got, tt.want)
+				t.Errorf("mapTradeInstrumentID(%q) = %q, want %q", tt.id, got, tt.want)
 			}
 		})
 	}
