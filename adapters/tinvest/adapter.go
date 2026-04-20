@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
 	"github.com/2dChan/trade-engine/lib/broker"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"

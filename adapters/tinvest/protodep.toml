@@ -1,4 +1,4 @@
-proto_outdir = "./proto"
+proto_outdir = "./internal/pb"
 
 [[dependencies]]
     target = "opensource.tbank.ru/invest/invest-contracts/src/docs/contracts"

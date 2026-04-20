@@ -9,7 +9,7 @@ import (
 	"math"
 	"strings"
 
-	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
 	"github.com/2dChan/trade-engine/lib/asset"
 	"github.com/2dChan/trade-engine/lib/trade"
 	"github.com/govalues/decimal"

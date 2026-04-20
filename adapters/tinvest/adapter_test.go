@@ -9,7 +9,7 @@ import (
 	"errors"
 	"testing"
 
-	pb "github.com/2dChan/trade-engine/adapters/tinvest/proto"
+	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
 	"github.com/2dChan/trade-engine/lib/broker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

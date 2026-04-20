@@ -1,9 +1,9 @@
-proto_outdir = "./proto"
+proto_outdir = "./internal/pb"
 
 [[dependencies]]
   target = "opensource.tbank.ru/invest/invest-contracts/src/docs/contracts"
   subgroup = ""
-  revision = "50100b234fef52e61a913dd89de6c7b2ee4c40af"
+  revision = "9e861476fa6cb9559d10ec2697fb5f93eeb32ca9"
   branch = "master"
   path = ""
   protocol = "https"

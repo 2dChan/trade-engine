@@ -1,0 +1,4 @@
+ignore:
+  - "**/*.pb.go"
+  - "**/internal/pb/**"
+  - "**/proto/**"
