@@ -8,15 +8,17 @@ import "testing"
 
 func TestNewAdapterOptions(t *testing.T) {
 	tests := []struct {
-		name    string
-		setters []AdapterOption
-		want    string
-		wantErr bool
+		name             string
+		setters          []AdapterOption
+		wantEndpoint     string
+		wantStartupCheck bool
+		wantErr          bool
 	}{
-		{name: "default", setters: nil, want: endpoint},
-		{name: "sandbox endpoint", setters: []AdapterOption{EnableSandbox()}, want: sandboxEndpoint},
-		{name: "custom endpoint", setters: []AdapterOption{WithEndpoint("example.test:443")}, want: "example.test:443"},
-		{name: "last setter wins", setters: []AdapterOption{EnableSandbox(), WithEndpoint("override.test:443")}, want: "override.test:443"},
+		{name: "default", setters: nil, wantEndpoint: endpoint, wantStartupCheck: true},
+		{name: "sandbox endpoint", setters: []AdapterOption{EnableSandbox()}, wantEndpoint: sandboxEndpoint, wantStartupCheck: true},
+		{name: "custom endpoint", setters: []AdapterOption{WithEndpoint("example.test:443")}, wantEndpoint: "example.test:443", wantStartupCheck: true},
+		{name: "disable startup check", setters: []AdapterOption{DisableStartupCheck()}, wantEndpoint: endpoint, wantStartupCheck: false},
+		{name: "last setter wins", setters: []AdapterOption{EnableSandbox(), WithEndpoint("override.test:443")}, wantEndpoint: "override.test:443", wantStartupCheck: true},
 		{name: "nil setter", setters: []AdapterOption{nil}, wantErr: true},
 		{name: "empty custom endpoint", setters: []AdapterOption{WithEndpoint("")}, wantErr: true},
 	}
@@ -33,8 +35,11 @@ func TestNewAdapterOptions(t *testing.T) {
 			if err != nil {
 				t.Fatalf("NewAdapterOptions() returned error: %v", err)
 			}
-			if got.endpoint != tt.want {
-				t.Fatalf("NewAdapterOptions() endpoint = %q, want %q", got.endpoint, tt.want)
+			if got.endpoint != tt.wantEndpoint {
+				t.Fatalf("NewAdapterOptions() endpoint = %q, want %q", got.endpoint, tt.wantEndpoint)
+			}
+			if got.startupCheck != tt.wantStartupCheck {
+				t.Fatalf("NewAdapterOptions() startupCheck = %t, want %t", got.startupCheck, tt.wantStartupCheck)
 			}
 		})
 	}
