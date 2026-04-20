@@ -4,7 +4,10 @@
 
 package tinvest
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestAdapterName(t *testing.T) {
 	a := &Adapter{}
@@ -17,5 +20,15 @@ func TestAdapterCloseNilConn(t *testing.T) {
 	a := &Adapter{}
 	if err := a.Close(); err != nil {
 		t.Errorf("Adapter.Close() returned error: %v", err)
+	}
+}
+
+func TestNewAdapterEmptyToken(t *testing.T) {
+	_, err := NewAdapter(context.Background(), "")
+	if err == nil {
+		t.Fatalf("NewAdapter() expected error")
+	}
+	if err.Error() != "tinvest: new adapter: token not set" {
+		t.Errorf("NewAdapter() error = %v, want token validation error", err)
 	}
 }

@@ -34,6 +34,10 @@ type Adapter struct {
 var _ broker.Broker = (*Adapter)(nil)
 
 func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
+	if token == "" {
+		return nil, fmt.Errorf("tinvest: new adapter: token not set")
+	}
+
 	opts, err := NewAdapterOptions(setters...)
 	if err != nil {
 		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
