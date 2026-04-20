@@ -37,12 +37,6 @@ jobs:
           cache: true
           cache-dependency-path: ${{ matrix.module }}/go.sum
 
-      - name: Set up Protoc
-        if: matrix.module == 'adapters/tinvest'
-        uses: arduino/setup-protoc@v3
-        with:
-          version: '33.0'
-
       - name:  Verify dependencies
         run: |
           go mod verify
