@@ -60,6 +60,15 @@ func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*A
 		usersClient:       pb.NewUsersServiceClient(conn),
 	}
 
+	if opts.startupCheck {
+		if err := a.startupCheck(ctx); err != nil {
+			if closeErr := a.Close(); closeErr != nil {
+				return nil, fmt.Errorf("tinvest: new adapter: startup check: %w; close: %v", err, closeErr)
+			}
+			return nil, fmt.Errorf("tinvest: new adapter: startup check: %w", err)
+		}
+	}
+
 	return a, nil
 }
 
@@ -74,5 +83,18 @@ func (a *Adapter) Close() error {
 	if err := a.conn.Close(); err != nil {
 		return fmt.Errorf("tinvest: close: %w", err)
 	}
+	return nil
+}
+
+func (a *Adapter) startupCheck(ctx context.Context) error {
+	req := pb.GetAccountsRequest{}
+	resp, err := a.usersClient.GetAccounts(ctx, &req)
+	if err != nil {
+		return classifyRPCError(err)
+	}
+	if resp == nil {
+		return broker.ErrUnavailable
+	}
+
 	return nil
 }

@@ -4,17 +4,21 @@
 
 package tinvest
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type AdapterOptions struct {
-	endpoint string
+	endpoint     string
+	startupCheck bool
 }
 
 type AdapterOption func(*AdapterOptions) error
 
 func NewAdapterOptions(setters ...AdapterOption) (AdapterOptions, error) {
 	opts := AdapterOptions{
-		endpoint: endpoint,
+		endpoint:     endpoint,
+		startupCheck: true,
 	}
 	for i, set := range setters {
 		if set == nil {
@@ -25,6 +29,13 @@ func NewAdapterOptions(setters ...AdapterOption) (AdapterOptions, error) {
 		}
 	}
 	return opts, nil
+}
+
+func DisableStartupCheck() AdapterOption {
+	return func(o *AdapterOptions) error {
+		o.startupCheck = false
+		return nil
+	}
 }
 
 func EnableSandbox() AdapterOption {
