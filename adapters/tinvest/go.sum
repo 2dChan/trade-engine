@@ -1,7 +1,7 @@
 cloud.google.com/go/compute/metadata v0.9.0 h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdBtwLoEkH9Zs=
 cloud.google.com/go/compute/metadata v0.9.0/go.mod h1:E0bWwX5wTnLPedCKqk3pJmVgCBSM6qQI1yTBdEb3C10=
-github.com/2dChan/trade-engine/lib v0.3.0 h1:tBS9BvZfvXiXBva9EPEUvnUSjZKmjalvMAcTT+Ay5LM=
-github.com/2dChan/trade-engine/lib v0.3.0/go.mod h1:u7GO/c7cbqZSv4wZuDuiqEkNK59pe11aqjcAlAcRiUg=
+github.com/2dChan/trade-engine/lib v0.4.0 h1:S0b7QXnUHKxc5Wq2Z8HSDqGp13DkabKM6VTGr1MMres=
+github.com/2dChan/trade-engine/lib v0.4.0/go.mod h1:u7GO/c7cbqZSv4wZuDuiqEkNK59pe11aqjcAlAcRiUg=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
