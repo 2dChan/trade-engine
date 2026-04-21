@@ -11,7 +11,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/2dChan/trade-engine/adapters/bcs"
+	"github.com/2dChan/trade-engine/adapters/tinvest"
 	"github.com/2dChan/trade-engine/bots/internal/botkit"
 	"github.com/2dChan/trade-engine/bots/internal/config"
 	"github.com/2dChan/trade-engine/bots/internal/logging"
@@ -30,7 +30,7 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 	// TODO: Choose broker via config.
-	brk, err := bcs.NewAdapter(ctx, token)
+	brk, err := tinvest.NewAdapter(ctx, token)
 	if err != nil {
 		return err
 	}

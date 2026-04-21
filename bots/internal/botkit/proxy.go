@@ -11,6 +11,7 @@ import (
 
 	"github.com/2dChan/trade-engine/lib/broker"
 	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/google/uuid"
 )
 
 type Proxy struct {
@@ -34,7 +35,7 @@ func NewProxy(ctx context.Context, b broker.Broker, accountID string) (Proxy, er
 		}
 	}
 	if !ok {
-		return Proxy{}, fmt.Errorf("botkit: new proxy: account %q: %w", accountID, broker.ErrInvalidAccountID)
+		return Proxy{}, fmt.Errorf("botkit: new proxy: account %q: %w", accountID, broker.ErrInvalidRequest)
 	}
 
 	return Proxy{broker: b, account: account}, nil
@@ -60,20 +61,24 @@ func (p Proxy) OrderState(ctx context.Context, orderID string) (trade.OrderState
 	return p.broker.OrderState(ctx, p.account.ID, orderID)
 }
 
-func (p Proxy) PlaceOrder(ctx context.Context, order trade.Order) (string, error) {
-	return p.broker.PlaceOrder(ctx, p.account.ID, order)
+func (p Proxy) PostOrder(ctx context.Context, requestID uuid.UUID, order trade.Order, opts ...broker.PostOrderOption) (string, error) {
+	return p.broker.PostOrder(ctx, p.account.ID, requestID, order, opts...)
+}
+
+func (p Proxy) PlaceOrder(ctx context.Context, order trade.Order, opts ...broker.PostOrderOption) (string, error) {
+	return p.PostOrder(ctx, uuid.New(), order, opts...)
 }
 
 func (p Proxy) CancelOrder(ctx context.Context, orderID string) error {
 	return p.broker.CancelOrder(ctx, p.account.ID, orderID)
 }
 
-func (p Proxy) InstrumentByTicker(ctx context.Context, ticker string) (trade.Instrument, error) {
-	return p.broker.InstrumentByTicker(ctx, ticker)
+func (p Proxy) InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error) {
+	return p.broker.InstrumentByID(ctx, id)
 }
 
-func (p Proxy) InstrumentsByTickers(ctx context.Context, tickers []string) ([]trade.Instrument, error) {
-	return p.broker.InstrumentsByTickers(ctx, tickers)
+func (p Proxy) InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error) {
+	return p.broker.InstrumentsByIDs(ctx, ids)
 }
 
 type ProxyAccount struct {
