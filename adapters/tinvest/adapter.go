@@ -31,7 +31,12 @@ type Adapter struct {
 	usersClient       pb.UsersServiceClient
 }
 
-var _ broker.Broker = (*Adapter)(nil)
+var (
+	_ broker.AccountsService       = (*Adapter)(nil)
+	_ broker.InstrumentsService    = (*Adapter)(nil)
+	_ broker.MarketDataService     = (*Adapter)(nil)
+	_ broker.AccountTradingService = (*Adapter)(nil)
+)
 
 func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
 	if token == "" {
