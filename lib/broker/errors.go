@@ -2,8 +2,6 @@
 // Licensed under the GNU Affero General Public License v3.0 or later.
 // See the LICENSE file in the project root for the full license text.
 
-// Package broker defines the Broker interface and sentinel errors returned by
-// its implementations. Use [errors.Is] to distinguish reaction categories.
 package broker
 
 import (

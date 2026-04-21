@@ -11,17 +11,30 @@ import (
 	"github.com/google/uuid"
 )
 
-type Broker interface {
-	Name() string
+type AccountsService interface {
 	Accounts(ctx context.Context) ([]trade.Account, error)
-	Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error)
-	Orders(ctx context.Context, accountID string) ([]trade.OrderState, error)
-	OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error)
-	PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order, opts ...PostOrderOption) (string, error)
-	CancelOrder(ctx context.Context, accountID string, orderID string) error
+}
+
+type InstrumentsService interface {
 	InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error)
 	InstrumentsByIDs(ctx context.Context, ids []trade.InstrumentID) ([]trade.Instrument, error)
+}
+
+type MarketDataService interface {
 	LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]trade.LastPrice, error)
 	OrderBook(ctx context.Context, id trade.InstrumentID, depth int) (trade.OrderBook, error)
-	Close() error
+}
+
+type PortfolioService interface {
+	Portfolio(ctx context.Context, accountID string) (trade.Portfolio, error)
+}
+
+type OrdersQueryService interface {
+	Orders(ctx context.Context, accountID string) ([]trade.OrderState, error)
+	OrderState(ctx context.Context, accountID string, orderID string) (trade.OrderState, error)
+}
+
+type OrderExecutionService interface {
+	PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order, opts ...PostOrderOption) (string, error)
+	CancelOrder(ctx context.Context, accountID string, orderID string) error
 }
