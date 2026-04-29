@@ -17,15 +17,21 @@
 - Language: Go
 - Shared core libraries
 
-**adapters/bcs**
+**adapters**
 
 - Language: Go
-- BCS broker adapter
+- Broker adapters implementing `core/broker` interfaces
+- Current modules: `adapters/bcs`, `adapters/tinvest`
+
+**botkit**
+
+- Language: Go
+- Public runtime/SDK for building bots outside this monorepo
 
 **bots**
 
 - Language: Go
-- Trading bots
+- First-party trading bots maintained in this monorepo
 
 **dashboard/backend**
 
