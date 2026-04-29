@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
-	"github.com/2dChan/trade-engine/lib/broker"
+	"github.com/2dChan/trade-engine/core/broker"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

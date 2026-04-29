@@ -9,8 +9,8 @@ import (
 	"fmt"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
-	"github.com/2dChan/trade-engine/lib/broker"
-	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/2dChan/trade-engine/core/broker"
+	"github.com/2dChan/trade-engine/core/trade"
 )
 
 func (a *Adapter) Accounts(ctx context.Context) ([]trade.Account, error) {

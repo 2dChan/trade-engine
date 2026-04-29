@@ -11,8 +11,8 @@ import (
 	"time"
 
 	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
-	"github.com/2dChan/trade-engine/lib/broker"
-	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/2dChan/trade-engine/core/broker"
+	"github.com/2dChan/trade-engine/core/trade"
 	"github.com/govalues/decimal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
