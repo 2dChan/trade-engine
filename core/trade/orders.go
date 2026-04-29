@@ -5,7 +5,7 @@
 package trade
 
 import (
-	"github.com/2dChan/trade-engine/lib/asset"
+	"github.com/2dChan/trade-engine/core/asset"
 	"github.com/govalues/decimal"
 )
 

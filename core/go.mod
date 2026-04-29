@@ -1,4 +1,4 @@
-module github.com/2dChan/trade-engine/lib
+module github.com/2dChan/trade-engine/core
 
 go 1.26.1
 

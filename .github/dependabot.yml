@@ -8,11 +8,11 @@ updates:
       prefix: "chore(ci): "
 
   - package-ecosystem: gomod
-    directory: "/lib"
+    directory: "/core"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "chore(lib): "
+      prefix: "chore(core): "
 
   - package-ecosystem: gomod
     directory: "/bots"
@@ -41,4 +41,3 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(adapters/tinvest): "
-

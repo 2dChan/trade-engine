@@ -12,10 +12,10 @@
 
 ## Структура проекта
 
-**lib**
+**core**
 
 - Language: Go
-- Shared libraries (broker, trade)
+- Shared core libraries
 
 **adapters/bcs**
 
