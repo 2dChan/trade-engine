@@ -20,6 +20,7 @@ jobs:
       matrix:
         module:
           - core
+          - botkit
           - adapters/bcs
           - adapters/tinvest
           - bots

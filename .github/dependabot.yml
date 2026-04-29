@@ -15,6 +15,13 @@ updates:
       prefix: "chore(core): "
 
   - package-ecosystem: gomod
+    directory: "/botkit"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(botkit): "
+
+  - package-ecosystem: gomod
     directory: "/bots"
     schedule:
       interval: "weekly"

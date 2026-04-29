@@ -7,7 +7,7 @@ package strategy
 import (
 	"context"
 
-	"github.com/2dChan/trade-engine/bots/internal/proxy"
+	"github.com/2dChan/trade-engine/botkit/proxy"
 	"github.com/2dChan/trade-engine/core/trade"
 )
 
