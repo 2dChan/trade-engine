@@ -8,7 +8,7 @@ import (
 	"context"
 
 	"github.com/2dChan/trade-engine/bots/internal/proxy"
-	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/2dChan/trade-engine/core/trade"
 )
 
 type Strategy interface {

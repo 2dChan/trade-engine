@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/2dChan/trade-engine/lib/broker"
-	"github.com/2dChan/trade-engine/lib/trade"
+	"github.com/2dChan/trade-engine/core/broker"
+	"github.com/2dChan/trade-engine/core/trade"
 )
 
 type ReaderServices struct {

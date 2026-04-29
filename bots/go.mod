@@ -3,7 +3,7 @@ module github.com/2dChan/trade-engine/bots
 go 1.26.1
 
 require (
-	github.com/2dChan/trade-engine/lib v0.4.0
+	github.com/2dChan/trade-engine/core v0.1.0
 	github.com/google/uuid v1.6.0
 )
 
