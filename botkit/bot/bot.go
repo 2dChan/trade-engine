@@ -69,6 +69,7 @@ func (b *Bot) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-timer.C:
+			timer.Reset(b.interval)
 		}
 
 		if err := b.tick(ctx); err != nil {
@@ -79,8 +80,6 @@ func (b *Bot) Run(ctx context.Context) error {
 			b.logger.ErrorContext(ctx, "run failed", "error", err)
 			return fmt.Errorf("bot: %w", err)
 		}
-
-		timer.Reset(b.interval)
 	}
 }
 
