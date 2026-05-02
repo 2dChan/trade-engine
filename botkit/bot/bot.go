@@ -25,6 +25,16 @@ type Bot struct {
 }
 
 func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trader, setters ...Option) (Bot, error) {
+	if strategy == nil {
+		return Bot{}, fmt.Errorf("bot: new bot: strategy is nil")
+	}
+	if reader == nil {
+		return Bot{}, fmt.Errorf("bot: new bot: reader is nil")
+	}
+	if trader == nil {
+		return Bot{}, fmt.Errorf("bot: new bot: trader is nil")
+	}
+
 	b := Bot{
 		strategy: strategy,
 		reader:   reader,
