@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/2dChan/trade-engine/botkit/proxy"
@@ -20,6 +21,7 @@ type Bot struct {
 	trader   *proxy.Trader
 	reader   *proxy.Reader
 	interval time.Duration
+	logger   *slog.Logger
 }
 
 func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trader, setters ...Option) (Bot, error) {
@@ -28,16 +30,23 @@ func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trad
 		reader:   reader,
 		trader:   trader,
 		interval: time.Second,
+		logger:   slog.New(slog.DiscardHandler),
 	}
 
 	for i, set := range setters {
 		if set == nil {
-			return Bot{}, fmt.Errorf("bot: nil setter at index %d", i)
+			return Bot{}, fmt.Errorf("bot: new bot: nil setter at index %d", i)
 		}
 		if err := set(&b); err != nil {
-			return Bot{}, fmt.Errorf("bot: apply setter at index %d: %w", i, err)
+			return Bot{}, fmt.Errorf("bot: new bot: apply setter at index %d: %w", i, err)
 		}
 	}
+
+	b.logger = b.logger.With(
+		"component", "bot",
+		"strategy", b.strategy.Name(),
+	)
+
 	return b, nil
 }
 
@@ -54,9 +63,11 @@ func (b *Bot) Run(ctx context.Context) error {
 
 		if err := b.tick(ctx); err != nil {
 			if errors.Is(err, context.Canceled) && ctx.Err() == context.Canceled {
+				b.logger.DebugContext(ctx, "run canceled")
 				return nil
 			}
-			return err
+			b.logger.ErrorContext(ctx, "run failed", "error", err)
+			return fmt.Errorf("bot: %w", err)
 		}
 
 		timer.Reset(b.interval)
@@ -66,7 +77,7 @@ func (b *Bot) Run(ctx context.Context) error {
 func (b *Bot) tick(ctx context.Context) error {
 	intents, err := b.strategy.Decide(ctx, b.reader)
 	if err != nil {
-		return err
+		return fmt.Errorf("decide intents: %w", err)
 	}
 
 	for _, intent := range intents {
@@ -77,9 +88,11 @@ func (b *Bot) tick(ctx context.Context) error {
 
 		_, err := b.trader.PostOrder(ctx, requestID, intent.Order)
 		if err != nil {
-			return err
+			return fmt.Errorf("request id %q: %w", requestID, err)
 		}
 	}
+
+	b.logger.DebugContext(ctx, "tick completed", "orders_posted", len(intents))
 
 	return nil
 }
