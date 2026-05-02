@@ -64,14 +64,18 @@ func (b *Bot) Run(ctx context.Context) error {
 }
 
 func (b *Bot) tick(ctx context.Context) error {
-	orders, err := b.strategy.Decide(ctx, b.reader)
+	intents, err := b.strategy.Decide(ctx, b.reader)
 	if err != nil {
 		return err
 	}
 
-	for _, ord := range orders {
-		// TODO: Reconcile existing orders and derive deterministic UUIDs to prevent duplicates.
-		_, err := b.trader.PostOrder(ctx, uuid.New(), ord)
+	for _, intent := range intents {
+		requestID := intent.Key
+		if requestID == uuid.Nil {
+			requestID = uuid.New()
+		}
+
+		_, err := b.trader.PostOrder(ctx, requestID, intent.Order)
 		if err != nil {
 			return err
 		}

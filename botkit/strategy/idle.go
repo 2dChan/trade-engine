@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/2dChan/trade-engine/botkit/proxy"
-	"github.com/2dChan/trade-engine/core/trade"
 )
 
 type Idle struct{}
@@ -17,6 +16,6 @@ func (Idle) Name() string {
 	return "idle"
 }
 
-func (Idle) Decide(_ context.Context, _ *proxy.Reader) ([]trade.Order, error) {
+func (Idle) Decide(_ context.Context, _ *proxy.Reader) ([]OrderIntent, error) {
 	return nil, nil
 }
