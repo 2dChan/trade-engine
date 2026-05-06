@@ -5,6 +5,8 @@
 package trade
 
 import (
+	"log/slog"
+
 	"github.com/2dChan/trade-engine/core/asset"
 	"github.com/govalues/decimal"
 )
@@ -17,6 +19,16 @@ type Order struct {
 	// Use Instrument.QuantityStep to convert between steps and base asset quantity.
 	Quantity int64
 	Price    decimal.Decimal
+}
+
+func (o Order) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.Any("instrument_id", o.InstrumentID),
+		slog.Any("type", o.Type),
+		slog.Any("direction", o.Direction),
+		slog.Int64("quantity", o.Quantity),
+		slog.Any("price", o.Price),
+	)
 }
 
 type OrderState struct {
@@ -32,6 +44,21 @@ type OrderState struct {
 	Commission           asset.Amount
 	QuantityRequested    int64
 	QuantityExecuted     int64
+}
+
+func (o OrderState) LogValue() slog.Value {
+	return slog.GroupValue(
+		slog.String("id", o.ID),
+		slog.Any("instrument_id", o.InstrumentID),
+		slog.Any("status", o.Status),
+		slog.Any("type", o.Type),
+		slog.Any("direction", o.Direction),
+		slog.Any("initial_position_price", o.InitialPositionPrice),
+		slog.Any("average_position_price", o.AveragePositionPrice),
+		slog.Any("commission", o.Commission),
+		slog.Int64("quantity_requested", o.QuantityRequested),
+		slog.Int64("quantity_executed", o.QuantityExecuted),
+	)
 }
 
 type OrderDirection int
