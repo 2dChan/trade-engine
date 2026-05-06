@@ -57,6 +57,11 @@ func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trad
 		"strategy", b.strategy.Name(),
 	)
 
+	b.logger.Debug(
+		"bot configured",
+		"interval", b.interval,
+	)
+
 	return b, nil
 }
 
@@ -84,24 +89,43 @@ func (b *Bot) Run(ctx context.Context) error {
 }
 
 func (b *Bot) tick(ctx context.Context) error {
+	tickID := uuid.New()
+	logger := b.logger.With("tick_id", tickID)
+
 	intents, err := b.strategy.Decide(ctx, b.reader)
 	if err != nil {
 		return fmt.Errorf("decide intents: %w", err)
 	}
 
+	ordersPosted := 0
+	debugEnabled := b.logger.Enabled(ctx, slog.LevelDebug)
 	for _, intent := range intents {
 		requestID := intent.Key
 		if requestID == uuid.Nil {
 			requestID = uuid.New()
 		}
 
-		_, err := b.trader.PostOrder(ctx, requestID, intent.Order)
+		orderID, err := b.trader.PostOrder(ctx, requestID, intent.Order)
 		if err != nil {
+			logger.ErrorContext(ctx, "failed to post order", "request_id", requestID, "order", intent.Order, "error", err)
 			return fmt.Errorf("request id %q: %w", requestID, err)
 		}
+
+		if debugEnabled {
+			logger.DebugContext(ctx, "order posted", "request_id", requestID, "order_id", orderID, "order", intent.Order)
+		}
+
+		ordersPosted++
 	}
 
-	b.logger.DebugContext(ctx, "tick completed", "orders_posted", len(intents))
+	if ordersPosted > 0 {
+		logger.InfoContext(
+			ctx,
+			"tick completed",
+			"intents_total", len(intents),
+			"orders_posted", ordersPosted,
+		)
+	}
 
 	return nil
 }
