@@ -66,6 +66,15 @@ func (r *Reader) LastPrices(ctx context.Context, ids []trade.InstrumentID) ([]tr
 	return prices, nil
 }
 
+func (r *Reader) OrderBook(ctx context.Context, id trade.InstrumentID, depth int) (trade.OrderBook, error) {
+	book, err := r.marketData.OrderBook(ctx, id, depth)
+	if err != nil {
+		return trade.OrderBook{}, fmt.Errorf("proxy: %w", err)
+	}
+
+	return book, nil
+}
+
 func (r *Reader) InstrumentByID(ctx context.Context, id trade.InstrumentID) (trade.Instrument, error) {
 	instrument, err := r.instruments.InstrumentByID(ctx, id)
 	if err != nil {
