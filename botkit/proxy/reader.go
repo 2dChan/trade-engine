@@ -47,6 +47,19 @@ func NewReader(accountID string, services ReaderServices) (*Reader, error) {
 	}, nil
 }
 
+func (r *Reader) MaskedAccountID() string {
+	const (
+		visibleTail = 4
+		mask        = "***"
+	)
+
+	if len(r.accountID) <= visibleTail {
+		return mask
+	}
+
+	return mask + r.accountID[len(r.accountID)-visibleTail:]
+}
+
 func (r *Reader) Portfolio(ctx context.Context) (trade.Portfolio, error) {
 	p, err := r.portfolio.Portfolio(ctx, r.accountID)
 	if err != nil {

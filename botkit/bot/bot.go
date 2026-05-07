@@ -52,15 +52,9 @@ func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trad
 		}
 	}
 
-	b.logger = b.logger.With(
-		"component", "bot",
-		"strategy", b.strategy.Name(),
-	)
+	b.logger = b.logger.With("run_id", uuid.New())
 
-	b.logger.Debug(
-		"bot configured",
-		"interval", b.interval,
-	)
+	b.logger.Info("bot configured", "account", b.reader.MaskedAccountID(), "strategy", b.strategy.Name(), "interval", b.interval)
 
 	return b, nil
 }
@@ -72,20 +66,22 @@ func (b *Bot) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
+			goto canceled
 		case <-timer.C:
 			timer.Reset(b.interval)
 		}
 
 		if err := b.tick(ctx); err != nil {
-			if errors.Is(err, context.Canceled) && ctx.Err() == context.Canceled {
-				b.logger.DebugContext(ctx, "run canceled")
-				return nil
+			if errors.Is(err, context.Canceled) && errors.Is(ctx.Err(), context.Canceled) {
+				goto canceled
 			}
-			b.logger.ErrorContext(ctx, "run failed", "error", err)
-			return fmt.Errorf("bot: %w", err)
+			return fmt.Errorf("bot: run: %w", err)
 		}
 	}
+
+canceled:
+	b.logger.InfoContext(ctx, "run canceled")
+	return nil
 }
 
 func (b *Bot) tick(ctx context.Context) error {
@@ -94,37 +90,48 @@ func (b *Bot) tick(ctx context.Context) error {
 
 	intents, err := b.strategy.Decide(ctx, b.reader)
 	if err != nil {
+		if ctx.Err() == nil {
+			logger.ErrorContext(ctx, "decide failed", "error", err)
+		}
 		return fmt.Errorf("decide intents: %w", err)
 	}
 
 	ordersPosted := 0
 	debugEnabled := b.logger.Enabled(ctx, slog.LevelDebug)
 	for _, intent := range intents {
-		requestID := intent.Key
-		if requestID == uuid.Nil {
-			requestID = uuid.New()
+		if intent.Key == uuid.Nil {
+			return fmt.Errorf("request id must be non-nil")
 		}
 
-		orderID, err := b.trader.PostOrder(ctx, requestID, intent.Order)
+		orderID, err := b.trader.PostOrder(ctx, intent.Key, intent.Order)
 		if err != nil {
-			logger.ErrorContext(ctx, "failed to post order", "request_id", requestID, "order", intent.Order, "error", err)
-			return fmt.Errorf("request id %q: %w", requestID, err)
+			if ctx.Err() == nil {
+				logger.ErrorContext(
+					ctx,
+					"post order failed",
+					"request_id", intent.Key,
+					"order", intent.Order,
+					"error", err,
+				)
+			}
+			return fmt.Errorf("request id %q: %w", intent.Key, err)
 		}
 
 		if debugEnabled {
-			logger.DebugContext(ctx, "order posted", "request_id", requestID, "order_id", orderID, "order", intent.Order)
+			logger.DebugContext(
+				ctx,
+				"order posted",
+				"request_id", intent.Key,
+				"order_id", orderID,
+				"order", intent.Order,
+			)
 		}
 
 		ordersPosted++
 	}
 
 	if ordersPosted > 0 {
-		logger.InfoContext(
-			ctx,
-			"tick completed",
-			"intents_total", len(intents),
-			"orders_posted", ordersPosted,
-		)
+		logger.InfoContext(ctx, "tick completed", "intents_total", len(intents), "orders_posted", ordersPosted)
 	}
 
 	return nil
