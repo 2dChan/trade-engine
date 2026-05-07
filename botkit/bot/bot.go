@@ -98,6 +98,10 @@ func (b *Bot) tick(ctx context.Context) error {
 
 	ordersPosted := 0
 	debugEnabled := b.logger.Enabled(ctx, slog.LevelDebug)
+	// TODO: Remove intent.Key(idempotency key generate in other layer)
+	// TODO: Async send requests
+	// TODO: Strategy remove snapshot, base on snapshot other layer post/cancel/edit orders.
+	// TODO: Maybe use sync.Pool for intents
 	for _, intent := range intents {
 		if intent.Key == uuid.Nil {
 			return fmt.Errorf("request id must be non-nil")
