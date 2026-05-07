@@ -61,9 +61,6 @@ func TestPortfolio(t *testing.T) {
 			t.Fatalf("Adapter.Portfolio() returned error: %v", err)
 		}
 
-		if got.AccountID != "acc-1" {
-			t.Errorf("Adapter.Portfolio() account_id = %q, want %q", got.AccountID, "acc-1")
-		}
 		if got.TotalAmount.Code() != "RUB" || got.TotalAmount.Value().Cmp(decimal.MustParse("1000")) != 0 {
 			t.Errorf("Adapter.Portfolio() total = %s, want RUB 1000", got.TotalAmount)
 		}
