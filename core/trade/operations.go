@@ -18,7 +18,6 @@ type Position struct {
 }
 
 type Portfolio struct {
-	AccountID   string
 	TotalAmount asset.Amount
 	Positions   []Position
 }
