@@ -1,5 +1,5 @@
-github.com/2dChan/trade-engine/core v0.1.0 h1:Vnf954GSRysLzxq9I8dC36F/cjlCAHbVCCzAPBt2qWc=
-github.com/2dChan/trade-engine/core v0.1.0/go.mod h1:2SLoMCbd2k9JXTuMbqGfFEziRINa63DSQu67dZdGvx0=
+github.com/2dChan/trade-engine/core v0.3.0 h1:0UFdobnRDHLyLWB7V7RDhrkQvjBbU+lxRz35tHiv1dI=
+github.com/2dChan/trade-engine/core v0.3.0/go.mod h1:2SLoMCbd2k9JXTuMbqGfFEziRINa63DSQu67dZdGvx0=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/govalues/decimal v0.1.36 h1:dojDpsSvrk0ndAx8+saW5h9WDIHdWpIwrH/yhl9olyU=
