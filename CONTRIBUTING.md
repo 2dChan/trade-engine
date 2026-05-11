@@ -4,53 +4,24 @@
 
 ## Оглавление
 
-1. [Структура проекта](#структура-проекта)
+1. [Организация репозитория](#организация-репозитория)
 2. [Добавление нового модуля](#добавление-нового-модуля)
 3. [Политика управления историей](#политика-управления-историей)
 4. [Кодстайл](#кодстайл)
 5. [Лицензия](#лицензия)
 
-## Структура проекта
+## Организация репозитория
 
-**core**
-
-- Language: Go
-- Shared core libraries
-
-**adapters**
-
-- Language: Go
-- Broker adapters implementing `core/broker` interfaces
-- Current modules: `adapters/bcs`, `adapters/tinvest`
-
-**botkit**
-
-- Language: Go
-- Public runtime/SDK for building bots outside this monorepo
-
-**bots**
-
-- Language: Go
-- First-party trading bots maintained in this monorepo
-
-**dashboard/backend**
-
-- Language: Go
-
-**dashboard/frontend**
-
-- Language: TypeScript
-- Package Manager: pnpm
-- Frameworks: Svelte, SvelteKit
+- Репозиторий организован как multi-module monorepo.
+- Каждый модуль поддерживает собственные зависимости и проверки.
+- Подробности по конкретному модулю смотрите в его локальной документации (`README.md` и связанные файлы).
 
 ## Добавление нового модуля
 
-- Добавьте ваш модуль в раздел "Структура проекта" файла CONTRIBUTING.md с указанием используемого
-  стека.
-- Если модуль на Go — создайте `go.mod` и добавьте путь к модулю в `go.work`.
+- Добавьте краткое описание модуля и его стека в локальную документацию модуля (`README.md`).
 - Настройте интеграцию с CI: добавьте модуль в существующий workflow либо создайте новый workflow с
-  этапами проверки линта, кодстайла, сборки и тестирования. Добавьте модуль в Dependabot для
-  автоматического отслеживания и обновления зависимостей через pull request.
+  этапами проверки lint, code style, build, tests.
+- Добавьте модуль в Dependabot для автоматического отслеживания и обновления зависимостей через Pull Request.
 
 ## Политика управления историей
 
@@ -64,7 +35,7 @@
 - Для названий Pull Request используйте стандарт
   [Conventional Commits](https://www.conventionalcommits.org/ru/v1.0.0/).
 - Для именования веток используйте шаблон `type/<название>-<номер_issues>`
-  - `type` — категория изменений: feature, fix, chore, ci, docs, question
+  - `type` — категория изменений: feat, fix, chore, ci, docs, question
   - `<название>` — название issue или краткое описание задачи (используйте "-" вместо пробелов)
   - `<номер_issues>` — номер соответствующего issue (при наличии)
 
@@ -87,7 +58,7 @@
 
 ### TypeScript
 
-[Eslint](https://eslint.org) обнаружит большинство проблем со стилем, которые могут быть в вашем
+[ESLint](https://eslint.org) обнаружит большинство проблем со стилем, которые могут быть в вашем
 коде. Вы можете проверить состояние стиля кода, просто запустив команду `pnpm lint`.
 
 ## Лицензия
