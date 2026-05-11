@@ -6,8 +6,6 @@ package strategy
 
 import (
 	"context"
-
-	"github.com/2dChan/trade-engine/botkit/proxy"
 )
 
 type Idle struct{}
@@ -16,6 +14,6 @@ func (Idle) Name() string {
 	return "idle"
 }
 
-func (Idle) Decide(_ context.Context, _ *proxy.Reader) ([]OrderIntent, error) {
+func (Idle) Decide(_ context.Context, _ View) ([]OrderIntent, error) {
 	return nil, nil
 }

@@ -7,7 +7,6 @@ package strategy
 import (
 	"context"
 
-	"github.com/2dChan/trade-engine/botkit/proxy"
 	"github.com/2dChan/trade-engine/core/trade"
 	"github.com/google/uuid"
 )
@@ -19,5 +18,5 @@ type OrderIntent struct {
 
 type Strategy interface {
 	Name() string
-	Decide(ctx context.Context, view *proxy.Reader) ([]OrderIntent, error)
+	Decide(ctx context.Context, view View) ([]OrderIntent, error)
 }

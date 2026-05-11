@@ -11,34 +11,32 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/2dChan/trade-engine/botkit/proxy"
+	"github.com/2dChan/trade-engine/botkit/internal/proxy"
 	"github.com/2dChan/trade-engine/botkit/strategy"
+	"github.com/2dChan/trade-engine/core/broker"
 	"github.com/google/uuid"
 )
 
 type Bot struct {
 	strategy strategy.Strategy
-	trader   *proxy.Trader
-	reader   *proxy.Reader
+	proxy    *proxy.Client
 	interval time.Duration
 	logger   *slog.Logger
 }
 
-func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trader, setters ...Option) (Bot, error) {
+func NewBot(strategy strategy.Strategy, service broker.Broker, accountID string, setters ...Option) (Bot, error) {
 	if strategy == nil {
 		return Bot{}, fmt.Errorf("bot: new bot: strategy is nil")
 	}
-	if reader == nil {
-		return Bot{}, fmt.Errorf("bot: new bot: reader is nil")
-	}
-	if trader == nil {
-		return Bot{}, fmt.Errorf("bot: new bot: trader is nil")
+
+	client, err := proxy.NewClient(accountID, service)
+	if err != nil {
+		return Bot{}, fmt.Errorf("bot: new bot: %w", err)
 	}
 
 	b := Bot{
 		strategy: strategy,
-		reader:   reader,
-		trader:   trader,
+		proxy:    client,
 		interval: time.Second,
 		logger:   slog.New(slog.DiscardHandler),
 	}
@@ -54,7 +52,7 @@ func NewBot(strategy strategy.Strategy, reader *proxy.Reader, trader *proxy.Trad
 
 	b.logger = b.logger.With("run_id", uuid.New())
 
-	b.logger.Info("bot configured", "account", b.reader.MaskedAccountID(), "strategy", b.strategy.Name(), "interval", b.interval)
+	b.logger.Info("bot configured", "account", b.proxy.MaskedAccountID(), "strategy", b.strategy.Name(), "interval", b.interval)
 
 	return b, nil
 }
@@ -88,7 +86,7 @@ func (b *Bot) tick(ctx context.Context) error {
 	tickID := uuid.New()
 	logger := b.logger.With("tick_id", tickID)
 
-	intents, err := b.strategy.Decide(ctx, b.reader)
+	intents, err := b.strategy.Decide(ctx, b.proxy)
 	if err != nil {
 		if ctx.Err() == nil {
 			logger.ErrorContext(ctx, "decide failed", "error", err)
@@ -107,7 +105,7 @@ func (b *Bot) tick(ctx context.Context) error {
 			return fmt.Errorf("request id must be non-nil")
 		}
 
-		orderID, err := b.trader.PostOrder(ctx, intent.Key, intent.Order)
+		orderID, err := b.proxy.PostOrder(ctx, intent.Key, intent.Order)
 		if err != nil {
 			if ctx.Err() == nil {
 				logger.ErrorContext(
