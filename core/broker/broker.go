@@ -38,3 +38,11 @@ type OrderExecutionService interface {
 	PostOrder(ctx context.Context, accountID string, requestID uuid.UUID, order trade.Order, opts ...PostOrderOption) (string, error)
 	CancelOrder(ctx context.Context, accountID string, orderID string) error
 }
+
+type Broker interface {
+	InstrumentsService
+	MarketDataService
+	PortfolioService
+	OrdersQueryService
+	OrderExecutionService
+}
