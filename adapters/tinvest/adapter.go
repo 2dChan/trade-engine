@@ -37,14 +37,14 @@ var (
 	_ broker.MarketDataService  = (*Adapter)(nil)
 )
 
-func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
+func New(ctx context.Context, token string, setters ...AdapterOption) (*Adapter, error) {
 	if token == "" {
-		return nil, fmt.Errorf("tinvest: new adapter: token not set")
+		return nil, fmt.Errorf("tinvest: new: token not set")
 	}
 
 	opts, err := NewAdapterOptions(setters...)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
+		return nil, fmt.Errorf("tinvest: new: %w", err)
 	}
 
 	dialOpts := []grpc.DialOption{
@@ -56,7 +56,7 @@ func NewAdapter(ctx context.Context, token string, setters ...AdapterOption) (*A
 
 	conn, err := grpc.NewClient(opts.endpoint, dialOpts...)
 	if err != nil {
-		return nil, fmt.Errorf("tinvest: new adapter: %w", err)
+		return nil, fmt.Errorf("tinvest: new: %w", err)
 	}
 
 	a := &Adapter{
