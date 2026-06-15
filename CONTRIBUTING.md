@@ -34,10 +34,8 @@
   [Conventional Commits](https://www.conventionalcommits.org/ru/v1.0.0/).
 - Для названий Pull Request используйте стандарт
   [Conventional Commits](https://www.conventionalcommits.org/ru/v1.0.0/).
-- Для именования веток используйте шаблон `type/<название>-<номер_issues>`
-  - `type` — категория изменений: feat, fix, chore, ci, docs, question
-  - `<название>` — название issue или краткое описание задачи (используйте "-" вместо пробелов)
-  - `<номер_issues>` — номер соответствующего issue (при наличии)
+- Для именования веток используйте стандарт
+  [Conventional Branch](https://conventionalbranch.org/ru/).
 
 ## Кодстайл
 
