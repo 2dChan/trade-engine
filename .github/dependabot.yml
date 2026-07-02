@@ -41,3 +41,10 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "chore(brokers/tinvest): "
+
+  - package-ecosystem: gomod
+    directory: "/brokers/bcs"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(brokers/bcs): "
