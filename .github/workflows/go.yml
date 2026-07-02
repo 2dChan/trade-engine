@@ -21,7 +21,6 @@ jobs:
         module:
           - core
           - botkit
-          - adapters/bcs
           - adapters/tinvest
           - bots
           - dashboard/backend
