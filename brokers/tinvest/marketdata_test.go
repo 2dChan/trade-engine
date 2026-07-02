@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
+	pb "github.com/2dChan/trade-engine/brokers/tinvest/internal/pb"
 	"github.com/2dChan/trade-engine/core/broker"
 	"github.com/2dChan/trade-engine/core/trade"
 	"github.com/govalues/decimal"

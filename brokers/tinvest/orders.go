@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	pb "github.com/2dChan/trade-engine/adapters/tinvest/internal/pb"
+	pb "github.com/2dChan/trade-engine/brokers/tinvest/internal/pb"
 	"github.com/2dChan/trade-engine/core/broker"
 	"github.com/2dChan/trade-engine/core/trade"
 	"github.com/google/uuid"

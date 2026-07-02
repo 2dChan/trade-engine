@@ -21,7 +21,7 @@ jobs:
         module:
           - core
           - botkit
-          - adapters/tinvest
+          - brokers/tinvest
           - bots
           - dashboard/backend
 

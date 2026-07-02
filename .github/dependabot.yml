@@ -36,8 +36,8 @@ updates:
       prefix: "chore(backend): "
 
   - package-ecosystem: gomod
-    directory: "/adapters/tinvest"
+    directory: "/brokers/tinvest"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "chore(adapters/tinvest): "
+      prefix: "chore(brokers/tinvest): "

@@ -1,4 +1,4 @@
-module github.com/2dChan/trade-engine/adapters/tinvest
+module github.com/2dChan/trade-engine/brokers/tinvest
 
 go 1.26.1
 
